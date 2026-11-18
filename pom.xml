@@ -10,8 +10,8 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>PDV-Swing-JPA</name>
-    <description>Projeto Didático PDV - Java Swing, JPA/Hibernate, H2, MVC e Padrões GoF</description>
+    <name>Sabor Express PDV</name>
+    <description>PDV desktop para lanchonete (Java Swing, JPA/Hibernate, H2, MVC e padroes GoF)</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
