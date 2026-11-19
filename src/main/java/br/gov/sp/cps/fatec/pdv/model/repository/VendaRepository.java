@@ -22,7 +22,6 @@ import java.util.Optional;
  * <b>Padrao MVC:</b> Pertence a camada de persistencia (Model), isolada da View
  * e do Controller.
  *
- * @author Jeniffer
  */
 public interface VendaRepository {
 

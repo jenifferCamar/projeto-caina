@@ -32,7 +32,6 @@ import java.util.Optional;
  * <b>Padrao MVC/Repository:</b> isola a persistencia na camada de repositorio,
  * mantendo a View e o Controller desacoplados do banco.
  *
- * @author Jeniffer
  */
 public class VendaRepositoryImpl implements VendaRepository {
 

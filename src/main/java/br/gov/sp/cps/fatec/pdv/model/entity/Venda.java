@@ -47,7 +47,6 @@ import java.util.Objects;
  * tabelas Swing apos uma venda) sera implementada na Service (Card 6) e na View
  * (Cards 5/7/8), consumindo os dados desta entidade.
  *
- * @author Jeniffer
  */
 @Entity
 @Table(name = "vendas")

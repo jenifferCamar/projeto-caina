@@ -34,7 +34,6 @@ import java.util.Objects;
  * <b>Padrao Repository:</b> Persistencia abstraida por {@code VendaRepository};
  * esta classe nao contem logica de acesso a dados.
  *
- * @author Jeniffer
  */
 @Entity
 @Table(name = "itens_venda")
