@@ -49,21 +49,21 @@ public class VendaRepositoryImpl implements VendaRepository {
     @Override
     public Venda salvar(Venda venda) {
         Objects.requireNonNull(venda, "Venda nao pode ser nula.");
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // abre conexao com o banco
+        EntityTransaction tx = em.getTransaction(); // transacao para operacao DML
         try {
-            tx.begin();
-            em.persist(venda);
-            tx.commit();
+            tx.begin(); // inicia transacao atomica
+            em.persist(venda); // persiste a venda (e itens via cascade)
+            tx.commit(); // confirma a transacao (ACID)
             return venda;
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // desfaz em caso de falha (sem estado parcial)
             }
             throw new RuntimeException("Erro ao persistir venda: " + e.getMessage(), e);
         } finally {
             if (em.isOpen()) {
-                em.close();
+                em.close(); // evita vazamento de conexao (Connection Leak)
             }
         }
     }
@@ -125,14 +125,16 @@ public class VendaRepositoryImpl implements VendaRepository {
         }
         EntityManager em = emf.createEntityManager();
         try {
+            // NamedQuery com JOIN FETCH para carregar os itens na mesma consulta
+            // (evita LazyInitializationException apos fechar o EntityManager)
             TypedQuery<Venda> query = em.createNamedQuery("Venda.buscarPorId", Venda.class);
-            query.setParameter("id", id);
+            query.setParameter("id", id); // parametro JPQL (sem SQL concatenado)
             return Optional.of(query.getSingleResult());
         } catch (jakarta.persistence.NoResultException e) {
-            return Optional.empty();
+            return Optional.empty(); // venda nao encontrada
         } finally {
             if (em.isOpen()) {
-                em.close();
+                em.close(); // libera a conexao
             }
         }
     }

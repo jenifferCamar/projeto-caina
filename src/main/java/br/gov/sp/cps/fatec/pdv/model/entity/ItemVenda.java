@@ -42,37 +42,50 @@ public class ItemVenda implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    // ==========================================
+    // CAMPOS / COLUNAS (mapeamento ORM)
+    // ==========================================
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    private Long id; // Chave primaria auto-incremento
 
+    // Lado "dono" da relacao com Venda (FK venda_id). FetchType.LAZY adia o
+    // carregamento da Venda ate o acesso, evitando consultas desnecessarias.
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "venda_id", nullable = false)
-    private Venda venda;
+    private Venda venda; // Venda a qual este item pertence
 
+    // Relacionamento N:1 com Produto (FK produto_id). optional=false garante
+    // que todo item tenha um produto associado (integridade referencial).
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "produto_id", nullable = false)
-    private Produto produto;
+    private Produto produto; // Produto vendido neste item
 
     @Column(name = "quantidade", nullable = false)
-    private Integer quantidade;
+    private Integer quantidade; // Quantidade vendida
 
     @Column(name = "preco_unitario", nullable = false, precision = 12, scale = 2)
-    private BigDecimal precoUnitario;
+    private BigDecimal precoUnitario; // Preco unitario no momento da venda
 
     @Column(name = "subtotal", nullable = false, precision = 12, scale = 2)
-    private BigDecimal subtotal;
+    private BigDecimal subtotal; // quantidade * precoUnitario
+
+    // ==========================================
+    // CONSTRUTORES
+    // ==========================================
 
     public ItemVenda() {
     }
 
+    // Construtor de conveniencia: calcula o subtotal automaticamente.
     public ItemVenda(Venda venda, Produto produto, Integer quantidade, BigDecimal precoUnitario) {
         this.venda = venda;
         this.produto = produto;
         this.quantidade = quantidade;
         this.precoUnitario = precoUnitario;
-        this.subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+        this.subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade)); // subtotal = qtd * preco
     }
 
     public Long getId() {

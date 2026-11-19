@@ -59,34 +59,48 @@ public class Venda implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    // ==========================================
+    // CAMPOS / COLUNAS (mapeamento ORM)
+    // ==========================================
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    private Long id; // Chave primaria auto-incremento (H2 IDENTITY)
 
     @Column(name = "data_hora", nullable = false)
-    private LocalDateTime dataHora;
+    private LocalDateTime dataHora; // Data/hora da venda (preenchida no construtor)
 
+    // Cliente armazenado por id/nome (sem @ManyToOne Cliente) porque a entidade
+    // Cliente (Card 2, w-tangly) ainda nao existe. Sera refatorado quando o
+    // Card 2 for mergeado.
     @Column(name = "cliente_id")
-    private Long clienteId;
+    private Long clienteId; // FK opcional para cliente (null = venda sem cliente)
 
     @Column(name = "cliente_nome", length = 120)
-    private String clienteNome;
+    private String clienteNome; // Nome do cliente para exibicao no historico
 
     @Column(name = "forma_pagamento", length = 30)
-    private String formaPagamento;
+    private String formaPagamento; // Dinheiro, Cartao, Pix etc. (refinado no Card 16)
 
     @Column(name = "status", length = 20, nullable = false)
-    private String status = "FINALIZADA";
+    private String status = "FINALIZADA"; // Status da venda (refinado no Card 16)
 
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
-    private BigDecimal total = BigDecimal.ZERO;
+    private BigDecimal total = BigDecimal.ZERO; // Soma dos subtotais dos itens
 
+    // Relacionamento 1:N com ItemVenda. cascade=ALL propaga persistencia/remocao.
+    // orphanRemoval=true remove itens orfaos do banco ao serem removidos da lista.
+    // FetchType.LAZY adia o carregamento dos itens ate o acesso (evita N+1).
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ItemVenda> itens = new ArrayList<>();
+    private List<ItemVenda> itens = new ArrayList<>(); // Itens do pedido
+
+    // ==========================================
+    // CONSTRUTORES
+    // ==========================================
 
     public Venda() {
-        this.dataHora = LocalDateTime.now();
+        this.dataHora = LocalDateTime.now(); // Data/hora automatica na criacao
     }
 
     public Venda(Long clienteId, String clienteNome) {
@@ -95,12 +109,18 @@ public class Venda implements Serializable {
         this.clienteNome = clienteNome;
     }
 
+    // ==========================================
+    // METODOS DE DOMINIO
+    // ==========================================
+
+    // Adiciona um item ao pedido, vincula a venda ao item e recalcula o total.
     public void adicionarItem(ItemVenda item) {
-        item.setVenda(this);
+        item.setVenda(this); // vincula o item a esta venda (lado "dono")
         this.itens.add(item);
-        recalcularTotal();
+        recalcularTotal(); // atualiza o total apos adicionar
     }
 
+    // Recalcula o total somando os subtotais de todos os itens.
     public void recalcularTotal() {
         BigDecimal soma = BigDecimal.ZERO;
         for (ItemVenda item : itens) {
