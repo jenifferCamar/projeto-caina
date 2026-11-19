@@ -1,7 +1,10 @@
 package br.gov.sp.cps.fatec.pdv;
 
+import br.gov.sp.cps.fatec.pdv.config.DataLoader;
 import br.gov.sp.cps.fatec.pdv.controller.ProdutoController;
 import br.gov.sp.cps.fatec.pdv.model.entity.Produto;
+import br.gov.sp.cps.fatec.pdv.model.repository.CategoriaRepository;
+import br.gov.sp.cps.fatec.pdv.model.repository.CategoriaRepositoryImpl;
 import br.gov.sp.cps.fatec.pdv.model.repository.ProdutoRepository;
 import br.gov.sp.cps.fatec.pdv.model.repository.ProdutoRepositoryImpl;
 import br.gov.sp.cps.fatec.pdv.model.service.ProdutoService;
@@ -13,7 +16,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.math.BigDecimal;
 
 /**
  * Ponto de Entrada Principal (Bootstrap) da Aplicação Desktop PDV-Swing-JPA.
@@ -40,6 +42,8 @@ import java.math.BigDecimal;
  * a conexão com o banco de dados H2 e o
  * {@link jakarta.persistence.EntityManagerFactory}
  * quando a janela for fechada pelo usuário.</li>
+ * <li><b>Data Loader (Database Seeding):</b> Executa carga inicial de dados
+ * idempotente via {@link DataLoader} (padrão CommandLineRunner do Spring Boot).</li>
  * </ul>
  *
  * @author Cainã Antunes Silva
@@ -54,13 +58,16 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             try {
                 // Instanciação da camada de persistência (JPA / Hibernate / H2)
-                ProdutoRepository repository = new ProdutoRepositoryImpl();
+                ProdutoRepository produtoRepository = new ProdutoRepositoryImpl();
+                CategoriaRepository categoriaRepository = new CategoriaRepositoryImpl();
 
-                // Carga inicial didática de dados caso o banco esteja vazio
-                inicializarDadosDemonstracao(repository);
+                // Carga inicial de dados via DataLoader (padrão CommandLineRunner)
+                System.out.println("[PDV-Swing] Executando DataLoader para carga inicial...");
+                DataLoader dataLoader = new DataLoader(produtoRepository, categoriaRepository);
+                dataLoader.run();
 
                 // Instanciação da camada de serviço de negócio e do Observer
-                ProdutoService service = new ProdutoService(repository);
+                ProdutoService service = new ProdutoService(produtoRepository, categoriaRepository);
 
                 // Procura e aplica o tema Nimbus entre os temas instalados no Java
                 for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -108,33 +115,6 @@ public class Main {
             } catch (Exception ex) {
                 System.err.println("Não foi possível configurar Look and Feel do sistema: " + ex.getMessage());
             }
-        }
-    }
-
-    /**
-     * Popula o banco de dados com produtos de demonstração pedagógica se a base
-     * estiver vazia.
-     *
-     * @param repository Repositório de produtos.
-     */
-    private static void inicializarDadosDemonstracao(ProdutoRepository repository) {
-        try {
-            if (repository.listarTodos().isEmpty()) {
-                System.out.println("[PDV-Swing] Base vazia detectada. Inserindo dados de demonstração didática...");
-                repository.salvar(new Produto("7891000100011", "Café Gourmet Especial Torrado 500g",
-                        new BigDecimal("24.90"), 35));
-                repository.salvar(
-                        new Produto("7891000200022", "Açúcar Demerara Orgânico 1kg", new BigDecimal("6.50"), 80));
-                repository.salvar(
-                        new Produto("7891000300033", "Arroz Nobre Agulhinha Tipo 1 5kg", new BigDecimal("32.90"), 50));
-                repository.salvar(
-                        new Produto("7891000400044", "Feijão Carioca Selecionado 1kg", new BigDecimal("8.75"), 60));
-                repository.salvar(new Produto("7891000500055", "Azeite de Oliva Extra Virgem 500ml",
-                        new BigDecimal("41.50"), 25));
-                System.out.println("[PDV-Swing] Carga inicial de demonstração concluída com sucesso!");
-            }
-        } catch (Exception e) {
-            System.err.println("[PDV-Swing] Aviso ao popular dados de demonstração: " + e.getMessage());
         }
     }
 }
