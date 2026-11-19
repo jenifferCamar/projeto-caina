@@ -22,6 +22,9 @@
         <hibernate.version>6.4.4.Final</hibernate.version>
         <h2.version>2.2.224</h2.version>
         <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+        <spring.data.jpa.version>3.2.0</spring.data.jpa.version>
+        <jakarta.validation.version>3.0.2</jakarta.validation.version>
+        <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
         <flatlaf.version>3.4.1</flatlaf.version>
         <junit.version>5.10.2</junit.version>
     </properties>
@@ -39,6 +42,39 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate.version}</version>
+        </dependency>
+
+        <!-- Spring Data JPA (Abstração de Repositório) -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+            <version>${spring.data.jpa.version}</version>
+        </dependency>
+
+        <!-- Jakarta Validation API -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta.validation.version}</version>
+        </dependency>
+
+        <!-- Hibernate Validator (Implementação Jakarta Validation) -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate.validator.version}</version>
+        </dependency>
+
+        <!-- Jakarta EL (Required for Hibernate Validator message interpolation) -->
+        <dependency>
+            <groupId>jakarta.el</groupId>
+            <artifactId>jakarta.el-api</artifactId>
+            <version>6.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+            <version>4.0.0</version>
         </dependency>
 
         <!-- H2 Database (Banco de Dados Embutido) -->
