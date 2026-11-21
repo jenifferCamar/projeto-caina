@@ -248,7 +248,7 @@ exemplo_persistencia_JavaSwing/
 ├── data/                         # Arquivos de banco de dados H2 gerados em tempo de execução
 ├── src/
 │   ├── main/
-│   │   ├── java/br/gov/sp/cps/fatec/pdv/
+│   │   ├── br/fiesp/senai/unisenai/saborexpress/pdv
 │   │   │   ├── Main.java                        # Ponto de entrada (Bootstrap, Pure DI e Look&Feel)
 │   │   │   ├── controller/
 │   │   │   │   └── ProdutoController.java       # Orquestrador MVC e ouvinte Observer
@@ -273,7 +273,7 @@ exemplo_persistencia_JavaSwing/
 │   │   └── resources/
 │   │       └── META-INF/
 │   │           └── persistence.xml              # Configuração JPA para banco H2 e testes
-│   └── test/java/br/gov/sp/cps/fatec/pdv/
+│   └── test/br/fiesp/senai/unisenai/saborexpress/pdv
 │       ├── model/repository/
 │       │   └── ProdutoRepositoryTest.java       # Teste de persistência e operações CRUD
 │       └── model/service/
