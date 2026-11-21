@@ -11,8 +11,9 @@
         
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         
-        <!-- Mapeamento da Entidade de Domínio -->
-        <class>br.gov.sp.cps.fatec.pdv.model.entity.Produto</class>
+<!-- Mapeamento das Entidades de Domínio -->
+<class>br.gov.sp.cps.fatec.pdv.model.entity.Produto</class>
+<class>br.gov.sp.cps.fatec.pdv.model.entity.Cliente</class>
 
         <properties>
             <!-- Configurações de Conexão JDBC (H2 Database embutido baseado em arquivo local) -->
@@ -42,6 +43,7 @@
         <description>Unidade de Persistência em Memória para Testes Rápidos e Isolados</description>
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <class>br.gov.sp.cps.fatec.pdv.model.entity.Produto</class>
+<class>br.gov.sp.cps.fatec.pdv.model.entity.Cliente</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:pdv_test_db;DB_CLOSE_DELAY=-1"/>
