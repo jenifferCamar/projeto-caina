@@ -79,11 +79,22 @@ public class Venda implements Serializable {
     @Column(name = "cliente_nome", length = 120)
     private String clienteNome; // Nome do cliente para exibicao no historico
 
+    // Formas de pagamento aceitas pelo PDV (exibicao/selecao no caixa)
+    public static final String PAGAMENTO_DINHEIRO = "DINHEIRO";
+    public static final String PAGAMENTO_CARTAO_DEBITO = "CARTAO_DEBITO";
+    public static final String PAGAMENTO_CARTAO_CREDITO = "CARTAO_CREDITO";
+    public static final String PAGAMENTO_PIX = "PIX";
+
+    // Status do ciclo de vida da venda
+    public static final String STATUS_ABERTO = "ABERTO";
+    public static final String STATUS_FINALIZADA = "FINALIZADA";
+    public static final String STATUS_CANCELADA = "CANCELADA";
+
     @Column(name = "forma_pagamento", length = 30)
-    private String formaPagamento; // Dinheiro, Cartao, Pix etc. (refinado no Card 16)
+    private String formaPagamento; // Forma de pagamento informada na finalizacao
 
     @Column(name = "status", length = 20, nullable = false)
-    private String status = "FINALIZADA"; // Status da venda (refinado no Card 16)
+    private String status = STATUS_ABERTO; // Status inicial; finalizacao/cancelamento alteram via Service
 
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total = BigDecimal.ZERO; // Soma dos subtotais dos itens

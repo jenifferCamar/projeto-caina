@@ -97,6 +97,10 @@ public class VendaService {
             throw new IllegalArgumentException("A venda deve conter ao menos um item.");
         }
 
+        validarFormaPagamento(venda.getFormaPagamento());
+        validarTransicaoStatus(venda.getStatus(), Venda.STATUS_FINALIZADA);
+        venda.setStatus(Venda.STATUS_FINALIZADA);
+
         // 2. Validacao de cada item: produto existente, quantidade positiva, estoque suficiente
         for (ItemVenda item : venda.getItens()) {
             if (item.getProduto() == null || item.getProduto().getId() == null) {
@@ -164,11 +168,48 @@ public class VendaService {
             throw new IllegalArgumentException("Venda nao encontrada: " + id);
         }
         Venda venda = vendaOpt.get();
-        if (!"FINALIZADA".equals(venda.getStatus())) {
-            throw new IllegalStateException("Apenas vendas finalizadas podem ser canceladas.");
-        }
-        venda.setStatus("CANCELADA");
+        validarTransicaoStatus(venda.getStatus(), Venda.STATUS_CANCELADA);
+        venda.setStatus(Venda.STATUS_CANCELADA);
         vendaRepository.atualizar(venda);
         notificarObservadores();
+    }
+
+    // ==========================================
+    // VALIDACOES DE PAGAMENTO E STATUS (Card 16)
+    // ==========================================
+
+    private void validarFormaPagamento(String formaPagamento) {
+        if (formaPagamento == null || formaPagamento.trim().isEmpty()) {
+            throw new IllegalArgumentException("Forma de pagamento e obrigatoria.");
+        }
+        String normalizada = formaPagamento.trim().toUpperCase();
+        if (!normalizada.equals(Venda.PAGAMENTO_DINHEIRO)
+                && !normalizada.equals(Venda.PAGAMENTO_CARTAO_DEBITO)
+                && !normalizada.equals(Venda.PAGAMENTO_CARTAO_CREDITO)
+                && !normalizada.equals(Venda.PAGAMENTO_PIX)) {
+            throw new IllegalArgumentException("Forma de pagamento invalida: " + formaPagamento);
+        }
+    }
+
+    private void validarTransicaoStatus(String statusAtual, String novoStatus) {
+        String atual = (statusAtual == null || statusAtual.trim().isEmpty())
+                ? Venda.STATUS_ABERTO : statusAtual.trim().toUpperCase();
+        String destino = novoStatus == null ? "" : novoStatus.trim().toUpperCase();
+
+        if (Venda.STATUS_FINALIZADA.equals(destino)) {
+            if (!Venda.STATUS_ABERTO.equals(atual)) {
+                throw new IllegalStateException(
+                        "Apenas vendas em aberto podem ser finalizadas. Status atual: " + atual);
+            }
+            return;
+        }
+        if (Venda.STATUS_CANCELADA.equals(destino)) {
+            if (!Venda.STATUS_FINALIZADA.equals(atual)) {
+                throw new IllegalStateException(
+                        "Apenas vendas finalizadas podem ser canceladas. Status atual: " + atual);
+            }
+            return;
+        }
+        throw new IllegalStateException("Transicao de status invalida: " + atual + " -> " + destino);
     }
 }
