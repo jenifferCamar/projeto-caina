@@ -16,8 +16,6 @@ import java.util.Objects;
  * <li>Armazena o ID do produto, a quantidade desejada e calcula o subtotal
  * com base no preço unitário informado.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class ItemCarrinho {
 

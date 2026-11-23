@@ -37,8 +37,6 @@ import java.util.Objects;
  * {@link VendaObserver}, sendo notificado de forma reativa a cada venda
  * finalizada para atualizar o {@link VendaTableModel} do histórico de vendas.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class VendaController implements VendaObserver {
 

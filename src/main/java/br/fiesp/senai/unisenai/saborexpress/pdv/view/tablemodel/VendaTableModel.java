@@ -29,8 +29,6 @@ import java.util.Locale;
  * {@code VendaService} para manter o histórico de vendas sempre sincronizado
  * após cada finalização.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class VendaTableModel extends AbstractTableModel {
 

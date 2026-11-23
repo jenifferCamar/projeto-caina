@@ -39,8 +39,6 @@ import java.util.Optional;
  * <i>Event Dispatch Thread</i> do Swing via
  * {@link SwingUtilities#invokeLater(Runnable)}.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class VendaService {
 

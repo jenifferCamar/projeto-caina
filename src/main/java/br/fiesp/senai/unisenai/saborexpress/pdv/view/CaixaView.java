@@ -42,8 +42,6 @@ import java.util.List;
  * {@code VendaController}, preservando o Princípio de Inversão de Controle e
  * Responsabilidade Única (SOLID).</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class CaixaView extends JPanel {
 

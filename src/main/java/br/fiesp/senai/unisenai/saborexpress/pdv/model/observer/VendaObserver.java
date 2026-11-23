@@ -19,8 +19,6 @@ import java.util.List;
  * <li>Utilizado pela {@link VendaService} para notificar a {@link VendaTableModel}
  * e outras visualizações de histórico após cada venda finalizada.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 @FunctionalInterface
 public interface VendaObserver {
