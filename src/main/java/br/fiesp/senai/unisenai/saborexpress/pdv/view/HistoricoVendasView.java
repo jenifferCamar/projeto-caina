@@ -24,6 +24,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.List;
 
 /**
  * Visão (View) do Histórico de Vendas do PDV.
