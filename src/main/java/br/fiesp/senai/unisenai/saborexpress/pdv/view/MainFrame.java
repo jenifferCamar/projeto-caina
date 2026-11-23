@@ -28,12 +28,14 @@ public class MainFrame extends JFrame {
 
     public static final String TELA_LISTA = "CARD_LISTA";
     public static final String TELA_FORMULARIO = "CARD_FORMULARIO";
+    public static final String TELA_CAIXA = "CARD_CAIXA";
 
     private final CardLayout cardLayout;
     private final JPanel painelPrincipal;
 
     private final ProdutoListView listView;
     private final ProdutoFormView formView;
+    private final CaixaView caixaView;
 
     public MainFrame() {
         super("PDV - Gestão de Produtos");
@@ -43,10 +45,12 @@ public class MainFrame extends JFrame {
 
         this.listView = new ProdutoListView();
         this.formView = new ProdutoFormView();
+        this.caixaView = new CaixaView();
 
         // Adiciona as telas ao container gerenciado por CardLayout
         this.painelPrincipal.add(listView, TELA_LISTA);
         this.painelPrincipal.add(formView, TELA_FORMULARIO);
+        this.painelPrincipal.add(caixaView, TELA_CAIXA);
 
         setContentPane(painelPrincipal);
 
@@ -78,5 +82,16 @@ public class MainFrame extends JFrame {
 
     public ProdutoFormView getFormView() {
         return formView;
+    }
+
+    public CaixaView getCaixaView() {
+        return caixaView;
+    }
+
+    /**
+     * Alterna a visualização para a tela de Caixa (checkout de vendas).
+     */
+    public void mostrarCaixa() {
+        cardLayout.show(painelPrincipal, TELA_CAIXA);
     }
 }

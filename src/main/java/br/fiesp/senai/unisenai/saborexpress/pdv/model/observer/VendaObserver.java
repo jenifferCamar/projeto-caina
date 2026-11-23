@@ -5,25 +5,28 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import java.util.List;
 
 /**
- * Interface do Padrao Observer para notificacao de alteracoes em Vendas.
+ * Interface do Padrão de Projeto Observer (GoF - Comportamental) para notificações
+ * de alterações em vendas.
  * <p>
- * <b>Conceito Pedagogico (Padrao Observer / Publish-Subscribe):</b>
- * Define uma relacao um-para-muitos entre objetos, de forma que quando o estado
- * do sujeito monitorado (Subject/Service) se altera, todos os observadores
- * registrados sao notificados e atualizados automaticamente.
- * <p>
- * <b>Thread Safety com Swing (EDT):</b> A notificacao deve ser despachada na
- * Event Dispatch Thread do Swing via SwingUtilities.invokeLater, evitando
- * condicoes de corrida e travamentos de UI.
+ * <b>Conceito Pedagógico (Padrão Observer / Publish-Subscribe):</b>
+ * <ul>
+ * <li>Define uma relação um-para-muitos entre objetos, de forma que quando o
+ * estado de uma venda se altera (finalização bem-sucedida), todos os
+ * observadores registrados são notificados e atualizados automaticamente.</li>
+ * <li>Promove o <b>baixo acoplamento</b>: a camada de negócio não precisa conhecer
+ * os detalhes de implementação das telas Swing, emitindo apenas o evento de dados
+ * modificados.</li>
+ * <li>Utilizado pela {@link VendaService} para notificar a {@link VendaTableModel}
+ * e outras visualizações de histórico após cada venda finalizada.</li>
+ * </ul>
  */
 @FunctionalInterface
 public interface VendaObserver {
 
     /**
-     * Notificacao disparada quando ocorre alteracao no repositorio de vendas
-     * (insercao, atualizacao, cancelamento bem-sucedido).
+     * Notificação disparada quando ocorre uma nova venda finalizada com sucesso.
      *
-     * @param vendas Lista atualizada e sincronizada de todas as vendas.
+     * @param vendas Lista atualizada e sincronizada de todas as vendas registradas.
      */
     void onVendasChanged(List<Venda> vendas);
 }
