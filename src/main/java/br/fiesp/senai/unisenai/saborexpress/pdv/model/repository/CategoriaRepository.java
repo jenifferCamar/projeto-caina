@@ -1,6 +1,6 @@
-package br.gov.sp.cps.fatec.pdv.model.repository;
+package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
-import br.gov.sp.cps.fatec.pdv.model.entity.Categoria;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

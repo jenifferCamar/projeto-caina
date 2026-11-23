@@ -1,7 +1,7 @@
-package br.gov.sp.cps.fatec.pdv.model.repository;
+package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
-import br.gov.sp.cps.fatec.pdv.model.entity.Categoria;
-import br.gov.sp.cps.fatec.pdv.util.JPAUtil;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
+import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;

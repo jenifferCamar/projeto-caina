@@ -1,4 +1,4 @@
-package br.gov.sp.cps.fatec.pdv.model.entity;
+package br.fiesp.senai.unisenai.saborexpress.pdv.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

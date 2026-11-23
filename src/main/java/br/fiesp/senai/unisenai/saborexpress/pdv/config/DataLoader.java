@@ -1,13 +1,13 @@
-package br.gov.sp.cps.fatec.pdv.config;
+package br.fiesp.senai.unisenai.saborexpress.pdv.config;
 
-import br.gov.sp.cps.fatec.pdv.model.entity.Categoria;
-import br.gov.sp.cps.fatec.pdv.model.entity.Produto;
-import br.gov.sp.cps.fatec.pdv.model.repository.CategoriaRepository;
-import br.gov.sp.cps.fatec.pdv.model.repository.CategoriaRepositoryImpl;
-import br.gov.sp.cps.fatec.pdv.model.repository.ProdutoRepository;
-import br.gov.sp.cps.fatec.pdv.model.repository.ProdutoRepositoryImpl;
-import br.gov.sp.cps.fatec.pdv.model.service.ProdutoService;
-import br.gov.sp.cps.fatec.pdv.util.JPAUtil;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepository;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepositoryImpl;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepositoryImpl;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
+import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ import java.util.List;
  * <li>Utiliza <b>idempotência</b>: verifica se os dados já existem antes de
  * inserir, podendo ser executada múltiplas vezes sem duplicar dados.</li>
  * <li>No contexto deste projeto (Java Swing + JPA), deve ser invocada
- * explicitamente no ponto de entrada da aplicação ({@link br.gov.sp.cps.fatec.pdv.Main}).</li>
+ * explicitamente no ponto de entrada da aplicação ({@link br.fiesp.senai.unisenai.saborexpress.pdv.Main}).</li>
  * </ul>
  * <p>
  * <b>Dados Iniciais - Categoria "Lanches":</b>

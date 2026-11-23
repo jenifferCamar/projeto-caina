@@ -298,12 +298,12 @@ No terminal, posicionado na raiz do projeto:
 #### No Windows (PowerShell / CMD):
 ```powershell
 # Executar a aplicação diretamente pelo Maven Wrapper:
-.\mvnw.cmd compile exec:java -Dexec.mainClass="br.gov.sp.cps.fatec.pdv.Main"
+.\mvnw.cmd compile exec:java -Dexec.mainClass="br.fiesp.senai.unisenai.saborexpress.pdv.Main"
 ```
 
 #### No Linux / macOS (Bash / Zsh):
 ```bash
-./mvnw compile exec:java -Dexec.mainClass="br.gov.sp.cps.fatec.pdv.Main"
+./mvnw compile exec:java -Dexec.mainClass="br.fiesp.senai.unisenai.saborexpress.pdv.Main"
 ```
 
 ---
