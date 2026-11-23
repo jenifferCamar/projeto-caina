@@ -5,7 +5,7 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>br.gov.sp.cps.fatec</groupId>
+    <groupId>br.fiesp.senai.unisenai.saborexpress</groupId>
     <artifactId>exemplo_persistencia_JavaSwing</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
@@ -131,7 +131,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>br.gov.sp.cps.fatec.pdv.Main</mainClass>
+                            <mainClass>br.fiesp.senai.unisenai.saborexpress.pdv.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -162,7 +162,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <mainClass>br.gov.sp.cps.fatec.pdv.Main</mainClass>
+                    <mainClass>br.fiesp.senai.unisenai.saborexpress.pdv.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
