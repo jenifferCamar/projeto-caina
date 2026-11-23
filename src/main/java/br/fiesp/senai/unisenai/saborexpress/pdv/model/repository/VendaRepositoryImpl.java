@@ -1,6 +1,8 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -147,6 +149,58 @@ public class VendaRepositoryImpl implements VendaRepository {
         } finally {
             if (em.isOpen()) {
                 em.close();
+            }
+        }
+    }
+
+    @Override
+    public Venda finalizarVenda(Venda venda) {
+        Objects.requireNonNull(venda, "Venda nao pode ser nula.");
+        if (venda.getItens() == null || venda.getItens().isEmpty()) {
+            throw new IllegalArgumentException("A venda deve conter ao menos um item.");
+        }
+
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin(); // inicia transacao atomica (ACID)
+
+            // 1. Persiste a Venda com seus itens (cascade ALL)
+            em.persist(venda);
+
+            // 2. Atualiza o estoque de cada produto vendido
+            for (ItemVenda item : venda.getItens()) {
+                Produto produto = em.find(Produto.class, item.getProduto().getId());
+                if (produto == null) {
+                    throw new IllegalArgumentException(
+                            "Produto nao encontrado: " + item.getProduto().getId());
+                }
+                int estoqueAtual = produto.getQuantidadeEstoque();
+                int quantidadeVendida = item.getQuantidade();
+                if (quantidadeVendida <= 0) {
+                    throw new IllegalArgumentException(
+                            "Quantidade deve ser maior que zero para o produto: " + produto.getNome());
+                }
+                if (estoqueAtual < quantidadeVendida) {
+                    throw new IllegalStateException(
+                            "Estoque insuficiente para '" + produto.getNome() +
+                                    "': disponivel=" + estoqueAtual + ", solicitado=" + quantidadeVendida);
+                }
+                // Baixa o estoque
+                produto.setQuantidadeEstoque(estoqueAtual - quantidadeVendida);
+                em.merge(produto); // atualiza o produto na mesma transacao
+            }
+
+            tx.commit(); // confirma tudo (venda + itens + estoque) de uma vez
+            return venda;
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback(); // desfaz tudo em caso de falha (sem estado parcial)
+            }
+            throw new RuntimeException("Erro ao finalizar venda: " + e.getMessage(), e);
+        } finally {
+            if (em.isOpen()) {
+                em.close(); // libera a conexao
             }
         }
     }
