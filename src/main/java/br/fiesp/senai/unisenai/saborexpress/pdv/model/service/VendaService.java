@@ -182,7 +182,7 @@ public class VendaService {
      *
      * @return Lista de vendas.
      */
-    public List<Venda> listarTodas() {
+    public List<Venda> listarTodos() {
         return vendaRepository.listarTodos();
     }
 
