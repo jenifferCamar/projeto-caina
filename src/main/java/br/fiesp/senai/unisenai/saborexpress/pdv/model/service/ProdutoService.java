@@ -8,6 +8,8 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaReposi
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 
 import javax.swing.SwingUtilities;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.PersistenceException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -159,9 +161,15 @@ public class ProdutoService {
         // Validação de existência da Categoria
         validarCategoria(produto.getCategoria());
 
-        Produto salvo = produtoRepository.save(produto);
-        notificarObservadores();
-        return salvo;
+        try {
+            Produto salvo = produtoRepository.save(produto);
+            notificarObservadores();
+            return salvo;
+        } catch (EntityExistsException | PersistenceException e) {
+            throw new IllegalArgumentException(
+                    "Já existe um produto cadastrado com os dados informados (código de barras ou nome duplicado): "
+                            + e.getMessage());
+        }
     }
 
     /**
@@ -196,9 +204,15 @@ public class ProdutoService {
         // Validação de existência da Categoria
         validarCategoria(produto.getCategoria());
 
-        Produto atualizado = produtoRepository.save(produto);
-        notificarObservadores();
-        return atualizado;
+        try {
+            Produto atualizado = produtoRepository.save(produto);
+            notificarObservadores();
+            return atualizado;
+        } catch (EntityExistsException | PersistenceException e) {
+            throw new IllegalArgumentException(
+                    "Já existe um produto cadastrado com os dados informados (código de barras ou nome duplicado): "
+                            + e.getMessage());
+        }
     }
 
     /**
