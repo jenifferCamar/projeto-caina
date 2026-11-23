@@ -18,6 +18,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
+// Herança: ClienteFormView estende JPanel, herdando layout e pintura do Swing
 public class ClienteFormView extends JPanel {
 
     private final JLabel lblTitulo;

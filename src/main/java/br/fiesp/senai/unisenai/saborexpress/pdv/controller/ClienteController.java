@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import java.util.List;
 import java.util.Objects;
 
+// Polimorfismo/Abstração: implementa ClienteObserver, reagindo a onClientesChanged sem conhecer a implementação concreta do serviço
 public class ClienteController implements ClienteObserver {
 
     private final MainFrame mainFrame;

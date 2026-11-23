@@ -19,6 +19,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.List;
 
+// Herança: ClienteListView estende JPanel, reutilizando comportamento de container Swing
 public class ClienteListView extends JPanel {
 
     private final JLabel lblTitulo;
