@@ -37,6 +37,9 @@ public class MainFrame extends JFrame {
     private final ProdutoFormView formView;
     private final CaixaView caixaView;
 
+    private final ClienteListView clienteListView;
+    private final ClienteFormView clienteFormView;
+
     public MainFrame() {
         super("PDV - Gestão de Produtos");
 
@@ -46,6 +49,9 @@ public class MainFrame extends JFrame {
         this.listView = new ProdutoListView();
         this.formView = new ProdutoFormView();
         this.caixaView = new CaixaView();
+
+        this.clienteListView = new ClienteListView();
+        this.clienteFormView = new ClienteFormView();
 
         // Adiciona as telas ao container gerenciado por CardLayout
         this.painelPrincipal.add(listView, TELA_LISTA);
@@ -74,6 +80,22 @@ public class MainFrame extends JFrame {
      */
     public void mostrarFormulario() {
         cardLayout.show(painelPrincipal, TELA_FORMULARIO);
+    }
+
+    public void mostrarListaCliente() {
+        cardLayout.show(painelPrincipal, "CARD_CLIENTE_LISTA");
+    }
+
+    public void mostrarFormularioCliente() {
+        cardLayout.show(painelPrincipal, "CARD_CLIENTE_FORMULARIO");
+    }
+
+    public ClienteListView getClienteListView() {
+        return clienteListView;
+    }
+
+    public ClienteFormView getClienteFormView() {
+        return clienteFormView;
     }
 
     public ProdutoListView getListView() {
