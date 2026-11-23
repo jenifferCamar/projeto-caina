@@ -89,6 +89,8 @@ public class ProdutoController implements ProdutoObserver {
         listView.getBtnEditar().addActionListener(e -> onEditarProduto());
         listView.getBtnExcluir().addActionListener(e -> onExcluirProduto());
         listView.getBtnRecarregar().addActionListener(e -> onRecarregarProdutos());
+        listView.getBtnBuscar().addActionListener(e -> onBuscarProdutos());
+        listView.getBtnLimparFiltro().addActionListener(e -> onLimparFiltro());
 
         // --- Eventos da Tela de Formulário ---
         formView.getBtnSalvar().addActionListener(e -> onSalvarProduto());
@@ -114,6 +116,20 @@ public class ProdutoController implements ProdutoObserver {
     }
 
     private void onRecarregarProdutos() {
+        service.notificarObservadores();
+    }
+
+    private void onBuscarProdutos() {
+        String termo = listView.getBuscaTexto();
+        if (termo == null || termo.isEmpty()) {
+            service.notificarObservadores();
+            return;
+        }
+        listView.atualizarTabela(service.buscarPorNome(termo));
+    }
+
+    private void onLimparFiltro() {
+        listView.limparBusca();
         service.notificarObservadores();
     }
 
