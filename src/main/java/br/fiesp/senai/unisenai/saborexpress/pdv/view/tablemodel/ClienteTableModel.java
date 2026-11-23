@@ -6,6 +6,9 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
+// Herança: ClienteTableModel estende AbstractTableModel (herda comportamento padrão de TableModel)
+// Polimorfismo: sobrescreve métodos abstratos (getRowCount, getColumnCount, getValueAt) para exibir Cliente
+// Abstração: oculta detalhes de armazenamento da lista, expondo apenas operações de leitura/atualização
 public class ClienteTableModel extends AbstractTableModel {
 
     private static final String[] COLUNAS = {"ID", "Nome", "Telefone", "Observações"};
