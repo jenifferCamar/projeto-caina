@@ -68,9 +68,9 @@ public class VendaController {
         this.historicoView = Objects.requireNonNull(historicoView, "HistoricoVendasView não pode ser nula.");
         this.produtoService = Objects.requireNonNull(produtoService, "ProdutoService não pode ser nulo.");
         this.vendaService = Objects.requireNonNull(vendaService, "VendaService não pode ser nulo.");
-        this.vendaTableModel = new VendaTableModel();
+        this.vendaTableModel = this.historicoView.getVendasTableModel();
 
-        // Registra o VendaTableModel como observador do VendaService
+        // Registra o VendaTableModel da view como observador do VendaService
         // para atualização reativa do histórico após cada venda finalizada
         this.vendaService.addObserver(this.vendaTableModel);
 
@@ -105,8 +105,17 @@ public class VendaController {
         caixaView.getBtnFinalizar().addActionListener(e -> onFinalizarVenda());
         caixaView.getBtnCancelar().addActionListener(e -> onCancelarVenda());
 
+        // --- Eventos de Navegação ---
+        caixaView.getBtnHistorico().addActionListener(e -> mainFrame.mostrarHistorico());
+        historicoView.getBtnVoltar().addActionListener(e -> mainFrame.mostrarCaixa());
+
         // --- Eventos do Histórico ---
         historicoView.getBtnAtualizar().addActionListener(e -> onAtualizarHistorico());
+        historicoView.getTabelaVendas().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                onVendaSelecionadaNoHistorico();
+            }
+        });
     }
 
     // ==========================================
@@ -288,6 +297,34 @@ public class VendaController {
 
     private void onAtualizarHistorico() {
         this.vendaService.notificarObservadores();
+    }
+
+    private void onVendaSelecionadaNoHistorico() {
+        int selectedRow = historicoView.getTabelaVendas().getSelectedRow();
+        if (selectedRow < 0) {
+            historicoView.exibirDetalhesVenda(null, java.util.Collections.emptyList());
+            return;
+        }
+
+        Venda vendaResumo = historicoView.getVendasTableModel().getVendaAt(selectedRow);
+        if (vendaResumo == null || vendaResumo.getId() == null) {
+            historicoView.exibirDetalhesVenda(null, java.util.Collections.emptyList());
+            return;
+        }
+
+        // Carrega a venda com itens utilizando buscarPorId (LEFT JOIN FETCH) para evitar LazyInitializationException
+        vendaService.buscarPorId(vendaResumo.getId()).ifPresentOrElse(vendaCompleta -> {
+            List<br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda> itens = vendaCompleta.getItens();
+            if (itens != null) {
+                for (br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda item : itens) {
+                    if (item.getProduto() != null && item.getProduto().getId() != null) {
+                        produtoService.buscarPorId(item.getProduto().getId())
+                                .ifPresent(item::setProduto);
+                    }
+                }
+            }
+            historicoView.exibirDetalhesVenda(vendaCompleta.getId(), itens);
+        }, () -> historicoView.exibirDetalhesVenda(null, java.util.Collections.emptyList()));
     }
 
     /**

@@ -63,6 +63,7 @@ public class HistoricoVendasView extends JPanel {
 
     // --- Botões ---
     private final JButton btnAtualizar;
+    private final JButton btnVoltar;
 
     public HistoricoVendasView(VendaTableModel vendasTableModel) {
         this.vendasTableModel = vendasTableModel;
@@ -177,37 +178,19 @@ public class HistoricoVendasView extends JPanel {
         // Botões à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
+        btnVoltar = new JButton("Voltar ao Caixa");
+        btnVoltar.setPreferredSize(new Dimension(130, 35));
+        btnVoltar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
         btnAtualizar = new JButton("Atualizar");
         btnAtualizar.setPreferredSize(new Dimension(110, 35));
         btnAtualizar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
+        painelBotoes.add(btnVoltar);
         painelBotoes.add(btnAtualizar);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
 
         add(painelRodape, BorderLayout.SOUTH);
-
-        // ==========================================
-        // 4. OUVINTES DE SELEÇÃO
-        // ==========================================
-        tabelaVendas.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    int selectedRow = tabelaVendas.getSelectedRow();
-                    if (selectedRow >= 0) {
-                        Venda vendaSelecionada = vendasTableModel.getVendaAt(selectedRow);
-                        if (vendaSelecionada != null) {
-                            List<ItemVenda> itens = vendaSelecionada.getItens();
-                            itensTableModel.setItens(itens);
-                            lblItens.setText("Itens da venda #" + vendaSelecionada.getId() + ":");
-                        }
-                    } else {
-                        itensTableModel.setItens(java.util.Collections.emptyList());
-                        lblItens.setText("Itens da venda:");
-                    }
-                }
-            }
-        });
     }
 
     // ==========================================
@@ -239,5 +222,39 @@ public class HistoricoVendasView extends JPanel {
      */
     public JButton getBtnAtualizar() {
         return btnAtualizar;
+    }
+
+    /**
+     * Retorna o botão para voltar à tela de caixa.
+     *
+     * @return {@link JButton} btnVoltar.
+     */
+    public JButton getBtnVoltar() {
+        return btnVoltar;
+    }
+
+    /**
+     * Atualiza a tabela secundária de itens com os detalhes da venda selecionada.
+     *
+     * @param vendaId Identificador da venda selecionada, ou {@code null} para limpar.
+     * @param itens   Lista de itens da venda selecionada.
+     */
+    public void exibirDetalhesVenda(Long vendaId, List<ItemVenda> itens) {
+        if (vendaId != null && itens != null) {
+            itensTableModel.setItens(itens);
+            lblItens.setText("Itens da venda #" + vendaId + ":");
+        } else {
+            itensTableModel.setItens(java.util.Collections.emptyList());
+            lblItens.setText("Itens da venda:");
+        }
+    }
+
+    /**
+     * Retorna o modelo de tabela de itens da venda.
+     *
+     * @return {@link ItensVendaTableModel} associado à tabela secundária.
+     */
+    public ItensVendaTableModel getItensTableModel() {
+        return itensTableModel;
     }
 }
