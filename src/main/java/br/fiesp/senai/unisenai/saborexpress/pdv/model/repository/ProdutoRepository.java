@@ -1,5 +1,6 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import org.springframework.stereotype.Repository;
 
@@ -86,6 +87,21 @@ public interface ProdutoRepository {
      * @return true se existir outro produto com o mesmo nome, false caso contrário.
      */
     boolean existsByNomeAndIdNot(String nome, Long id);
+
+    /**
+     * Lista todos os produtos ativos.
+     *
+     * @return Lista de produtos ativos.
+     */
+    List<Produto> findByAtivoTrue();
+
+    /**
+     * Lista produtos ativos de uma determinada categoria.
+     *
+     * @param categoria Categoria dos produtos.
+     * @return Lista de produtos ativos da categoria.
+     */
+    List<Produto> findByAtivoTrueAndCategoria(Categoria categoria);
 
     /**
      * Lista todos os produtos ativos, ordenados alfabeticamente pelo nome.

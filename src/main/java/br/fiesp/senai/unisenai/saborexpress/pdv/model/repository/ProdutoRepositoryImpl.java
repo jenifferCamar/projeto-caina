@@ -1,5 +1,6 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
@@ -205,6 +206,19 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
                 em.close();
             }
         }
+    }
+
+    @Override
+    public List<Produto> findByAtivoTrue() {
+        return findByAtivoTrueOrderByNomeAsc();
+    }
+
+    @Override
+    public List<Produto> findByAtivoTrueAndCategoria(Categoria categoria) {
+        if (categoria == null || categoria.getId() == null) {
+            return List.of();
+        }
+        return findByCategoriaIdAndAtivoTrueOrderByNomeAsc(categoria.getId());
     }
 
     @Override
