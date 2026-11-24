@@ -33,6 +33,7 @@ public class ClienteListView extends JPanel {
     private final JTextField txtBusca;
     private final JButton btnBuscar;
     private final JButton btnLimparFiltro;
+    private final JButton btnRecarregar;
 
     public ClienteListView() {
         setLayout(new BorderLayout(15, 15));
@@ -89,6 +90,7 @@ public class ClienteListView extends JPanel {
         painelBotoes.add(btnBuscar);
         painelBotoes.add(btnLimparFiltro);
         painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
+        painelBotoes.add(btnRecarregar); painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
         add(painelRodape, BorderLayout.SOUTH);
     }

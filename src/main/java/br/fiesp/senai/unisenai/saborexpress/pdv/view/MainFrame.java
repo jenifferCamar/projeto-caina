@@ -1,5 +1,7 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel.VendaTableModel;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.CardLayout;
@@ -28,12 +30,19 @@ public class MainFrame extends JFrame {
 
     public static final String TELA_LISTA = "CARD_LISTA";
     public static final String TELA_FORMULARIO = "CARD_FORMULARIO";
+    public static final String TELA_CAIXA = "CARD_CAIXA";
+    public static final String TELA_HISTORICO = "CARD_HISTORICO";
 
     private final CardLayout cardLayout;
     private final JPanel painelPrincipal;
 
     private final ProdutoListView listView;
     private final ProdutoFormView formView;
+    private final CaixaView caixaView;
+    private final HistoricoVendasView historicoView;
+
+    private final ClienteListView clienteListView;
+    private final ClienteFormView clienteFormView;
 
     public MainFrame() {
         super("PDV - Gestão de Produtos");
@@ -43,10 +52,17 @@ public class MainFrame extends JFrame {
 
         this.listView = new ProdutoListView();
         this.formView = new ProdutoFormView();
+        this.caixaView = new CaixaView();
+        this.historicoView = new HistoricoVendasView(new VendaTableModel());
+
+        this.clienteListView = new ClienteListView();
+        this.clienteFormView = new ClienteFormView();
 
         // Adiciona as telas ao container gerenciado por CardLayout
         this.painelPrincipal.add(listView, TELA_LISTA);
         this.painelPrincipal.add(formView, TELA_FORMULARIO);
+        this.painelPrincipal.add(caixaView, TELA_CAIXA);
+        this.painelPrincipal.add(historicoView, TELA_HISTORICO);
 
         setContentPane(painelPrincipal);
 
@@ -72,11 +88,49 @@ public class MainFrame extends JFrame {
         cardLayout.show(painelPrincipal, TELA_FORMULARIO);
     }
 
+    public void mostrarListaCliente() {
+        cardLayout.show(painelPrincipal, "CARD_CLIENTE_LISTA");
+    }
+
+    public void mostrarFormularioCliente() {
+        cardLayout.show(painelPrincipal, "CARD_CLIENTE_FORMULARIO");
+    }
+
+    public ClienteListView getClienteListView() {
+        return clienteListView;
+    }
+
+    public ClienteFormView getClienteFormView() {
+        return clienteFormView;
+    }
+
     public ProdutoListView getListView() {
         return listView;
     }
 
     public ProdutoFormView getFormView() {
         return formView;
+    }
+
+    public CaixaView getCaixaView() {
+        return caixaView;
+    }
+
+    public HistoricoVendasView getHistoricoView() {
+        return historicoView;
+    }
+
+    /**
+     * Alterna a visualização para a tela de Caixa (checkout de vendas).
+     */
+    public void mostrarCaixa() {
+        cardLayout.show(painelPrincipal, TELA_CAIXA);
+    }
+
+    /**
+     * Alterna a visualização para a tela de Histórico de Vendas.
+     */
+    public void mostrarHistorico() {
+        cardLayout.show(painelPrincipal, TELA_HISTORICO);
     }
 }

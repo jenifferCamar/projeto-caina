@@ -15,6 +15,8 @@
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Cliente</class>
+        <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda</class>
+        <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda</class>
 
         <properties>
             <!-- Configurações de Conexão JDBC (H2 Database embutido baseado em arquivo local) -->
@@ -49,6 +51,8 @@
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Cliente</class>
+        <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda</class>
+        <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:pdv_test_db;DB_CLOSE_DELAY=-1"/>
