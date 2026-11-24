@@ -46,7 +46,9 @@ public class ProdutoListView extends JPanel {
     private final JButton btnNovo;
     private final JButton btnEditar;
     private final JButton btnExcluir;
-    private final JButton btnRecarregar;
+    private final JTextField txtBusca;
+    private final JButton btnBuscar;
+    private final JButton btnLimparFiltro;
 
     public ProdutoListView() {
         setLayout(new BorderLayout(15, 15));
@@ -101,6 +103,13 @@ public class ProdutoListView extends JPanel {
         btnRecarregar = new JButton("Recarregar");
         btnRecarregar.setPreferredSize(new Dimension(110, 35));
 
+        txtBusca = new JTextField();
+        txtBusca.setPreferredSize(new Dimension(180, 30));
+        btnBuscar = new JButton("Buscar");
+        btnBuscar.setPreferredSize(new Dimension(90, 35));
+        btnLimparFiltro = new JButton("Limpar Filtro");
+        btnLimparFiltro.setPreferredSize(new Dimension(110, 35));
+
         btnExcluir = new JButton("Excluir");
         btnExcluir.setPreferredSize(new Dimension(110, 35));
         btnExcluir.setForeground(new Color(180, 40, 40));
@@ -113,6 +122,9 @@ public class ProdutoListView extends JPanel {
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
         painelBotoes.add(btnRecarregar);
+        painelBotoes.add(txtBusca);
+        painelBotoes.add(btnBuscar);
+        painelBotoes.add(btnLimparFiltro);
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnNovo);
@@ -173,5 +185,17 @@ public class ProdutoListView extends JPanel {
 
     public JButton getBtnRecarregar() {
         return btnRecarregar;
+    }
+
+    public String getBuscaTexto() {
+        return txtBusca.getText().trim();
+    }
+
+    public JButton getBtnBuscar() {
+        return btnBuscar;
+    }
+
+    public void limparBusca() {
+        txtBusca.setText("");
     }
 }

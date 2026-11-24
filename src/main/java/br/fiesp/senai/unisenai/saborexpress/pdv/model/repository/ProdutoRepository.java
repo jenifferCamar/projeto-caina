@@ -1,83 +1,112 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Interface do Padrão de Projeto Repository (GoF / Martin Fowler) para a
- * entidade {@link Produto}.
+ * Interface do Repositório para a entidade {@link Produto}.
  * <p>
- * <b>Conceito Pedagógico (Padrão Repository & Inversão de Dependência -
- * DIP):</b>
+ * <b>Conceito Pedagógico (Repository Pattern):</b>
  * <ul>
- * <li>O padrão Repository abstrai a camada de acesso a dados (DAL), simulando
- * uma coleção
- * em memória de objetos de domínio.</li>
- * <li>Permite que as camadas superiores (Controller e Service) dependam de uma
- * <b>abstração</b>
- * (esta interface), e não de uma implementação concreta acoplada à tecnologia
- * de banco
- * (JPA/Hibernate, JDBC puro, NoSQL).</li>
- * <li>Facilita testes unitários utilizando mocks/stubs e promove o Princípio da
- * Responsabilidade
- * Única (SRP - SOLID).</li>
+ * <li>Define o contrato para operações de persistência de {@link Produto}.</li>
+ * <li>Não estende {@link org.springframework.data.jpa.repository.JpaRepository} para
+ * evitar conflitos de versão com Spring Data JPA 3.x.</li>
+ * <li>A implementação {@link ProdutoRepositoryImpl} fornece a lógica JPA manual.</li>
+ * <li>A anotação {@link Repository} permite detecção automática via component scanning.</li>
  * </ul>
  *
  * @author Cainã Antunes Silva
  */
+@Repository
 public interface ProdutoRepository {
 
     /**
-     * Persiste uma nova entidade {@link Produto} no banco de dados.
+     * Salva um produto (insert ou update).
      *
-     * @param produto Objeto a ser persistido (com id nulo).
-     * @return O produto gerenciado com o ID gerado pelo banco.
-     * @throws RuntimeException caso ocorra falha na transação de persistência.
+     * @param produto Produto a ser salvo.
+     * @return Produto salvo com ID gerado.
      */
-    Produto salvar(Produto produto);
+    Produto save(Produto produto);
 
     /**
-     * Atualiza o estado de uma entidade {@link Produto} já existente.
+     * Busca um produto por ID.
      *
-     * @param produto Objeto contendo os dados atualizados (deve possuir id válido).
-     * @return A entidade gerenciada e sincronizada.
-     * @throws RuntimeException caso ocorra falha na atualização.
+     * @param id ID do produto.
+     * @return Optional contendo o produto se encontrado.
      */
-    Produto atualizar(Produto produto);
+    Optional<Produto> findById(Long id);
 
     /**
-     * Remove uma entidade do banco de dados pelo seu identificador primário.
+     * Lista todos os produtos.
      *
-     * @param id Identificador único do produto a ser excluído.
-     * @throws RuntimeException caso o produto não seja encontrado ou ocorra erro
-     *                          transacional.
+     * @return Lista de todos os produtos.
      */
-    void excluir(Long id);
+    List<Produto> findAll();
 
     /**
-     * Recupera um produto através do seu identificador único.
+     * Exclui um produto por ID.
      *
-     * @param id Chave primária do produto.
-     * @return {@link Optional} contendo o produto encontrado, ou vazio se não
-     *         existir.
+     * @param id ID do produto a ser excluído.
      */
-    Optional<Produto> buscarPorId(Long id);
+    void deleteById(Long id);
 
     /**
-     * Recupera um produto pelo seu código de barras único.
+     * Busca um produto pelo seu código de barras único.
      *
      * @param codigoBarras Código de barras a ser consultado.
-     * @return {@link Optional} contendo o produto encontrado, ou vazio se não
-     *         existir.
+     * @return Optional contendo o produto encontrado, ou vazio se não existir.
      */
-    Optional<Produto> buscarPorCodigoBarras(String codigoBarras);
+    Optional<Produto> findByCodigoBarras(String codigoBarras);
 
     /**
-     * Retorna a listagem completa de todos os produtos cadastrados.
+     * Verifica se existe um produto com o código de barras informado.
      *
-     * @return Lista contendo todos os produtos, ordenada alfabeticamente pelo nome.
+     * @param codigoBarras Código de barras a ser verificado.
+     * @return true se existir, false caso contrário.
      */
-    List<Produto> listarTodos();
+    boolean existsByCodigoBarras(String codigoBarras);
+
+    /**
+     * Verifica se existe um produto com o nome informado (para validação de unicidade).
+     *
+     * @param nome Nome do produto a ser verificado.
+     * @return true se existir, false caso contrário.
+     */
+    boolean existsByNome(String nome);
+
+    /**
+     * Verifica se existe outro produto com o mesmo nome (excluindo o ID informado).
+     * Útil para validação de unicidade durante atualização.
+     *
+     * @param nome Nome do produto a ser verificado.
+     * @param id   ID do produto a ser ignorado na verificação.
+     * @return true se existir outro produto com o mesmo nome, false caso contrário.
+     */
+    boolean existsByNomeAndIdNot(String nome, Long id);
+
+    /**
+     * Lista todos os produtos ativos, ordenados alfabeticamente pelo nome.
+     *
+     * @return Lista de produtos ativos.
+     */
+    List<Produto> findByAtivoTrueOrderByNomeAsc();
+
+    /**
+     * Lista produtos ativos de uma determinada categoria, ordenados pelo nome.
+     *
+     * @param categoriaId ID da categoria.
+     * @return Lista de produtos ativos da categoria.
+     */
+    List<Produto> findByCategoriaIdAndAtivoTrueOrderByNomeAsc(Long categoriaId);
+
+    /**
+     * Busca produtos ativos cujo nome contém o termo informado (busca parcial, case-insensitive).
+     *
+     * @param termo Termo de busca.
+     * @return Lista de produtos correspondentes.
+     */
+    List<Produto> findByAtivoTrueAndNomeContainingIgnoreCaseOrderByNomeAsc(String termo);
 }
