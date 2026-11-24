@@ -1,5 +1,7 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel.VendaTableModel;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.CardLayout;
@@ -29,6 +31,7 @@ public class MainFrame extends JFrame {
     public static final String TELA_LISTA = "CARD_LISTA";
     public static final String TELA_FORMULARIO = "CARD_FORMULARIO";
     public static final String TELA_CAIXA = "CARD_CAIXA";
+    public static final String TELA_HISTORICO = "CARD_HISTORICO";
 
     private final CardLayout cardLayout;
     private final JPanel painelPrincipal;
@@ -36,6 +39,7 @@ public class MainFrame extends JFrame {
     private final ProdutoListView listView;
     private final ProdutoFormView formView;
     private final CaixaView caixaView;
+    private final HistoricoVendasView historicoView;
 
     private final ClienteListView clienteListView;
     private final ClienteFormView clienteFormView;
@@ -49,6 +53,7 @@ public class MainFrame extends JFrame {
         this.listView = new ProdutoListView();
         this.formView = new ProdutoFormView();
         this.caixaView = new CaixaView();
+        this.historicoView = new HistoricoVendasView(new VendaTableModel());
 
         this.clienteListView = new ClienteListView();
         this.clienteFormView = new ClienteFormView();
@@ -57,6 +62,7 @@ public class MainFrame extends JFrame {
         this.painelPrincipal.add(listView, TELA_LISTA);
         this.painelPrincipal.add(formView, TELA_FORMULARIO);
         this.painelPrincipal.add(caixaView, TELA_CAIXA);
+        this.painelPrincipal.add(historicoView, TELA_HISTORICO);
 
         setContentPane(painelPrincipal);
 
@@ -110,10 +116,21 @@ public class MainFrame extends JFrame {
         return caixaView;
     }
 
+    public HistoricoVendasView getHistoricoView() {
+        return historicoView;
+    }
+
     /**
      * Alterna a visualização para a tela de Caixa (checkout de vendas).
      */
     public void mostrarCaixa() {
         cardLayout.show(painelPrincipal, TELA_CAIXA);
+    }
+
+    /**
+     * Alterna a visualização para a tela de Histórico de Vendas.
+     */
+    public void mostrarHistorico() {
+        cardLayout.show(painelPrincipal, TELA_HISTORICO);
     }
 }
