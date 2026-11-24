@@ -13,6 +13,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -47,6 +48,7 @@ public class ProdutoFormView extends JPanel {
     private final JTextField txtNome;
     private final JTextField txtPreco;
     private final JTextField txtQuantidadeEstoque;
+    private final JCheckBox chkAtivo;
 
     private final JButton btnSalvar;
     private final JButton btnLimpar;
@@ -151,6 +153,19 @@ public class ProdutoFormView extends JPanel {
         gbc.weightx = 1.0;
         painelCampos.add(txtQuantidadeEstoque, gbc);
 
+        // Campo Ativo / Inativo
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weightx = 0.0;
+        painelCampos.add(new JLabel("Status do Produto:"), gbc);
+        chkAtivo = new JCheckBox("Produto Ativo (disponível para vendas no Caixa)");
+        chkAtivo.setSelected(true);
+        chkAtivo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.weightx = 1.0;
+        painelCampos.add(chkAtivo, gbc);
+
         // Painel envelopador para manter o formulário no topo
         JPanel painelEnvelopador = new JPanel(new BorderLayout());
         painelEnvelopador.add(painelCampos, BorderLayout.NORTH);
@@ -185,6 +200,7 @@ public class ProdutoFormView extends JPanel {
         this.lblTitulo.setText("Novo Produto - Cadastro");
         this.lblSubtitulo.setText("Preencha todos os campos obrigatórios (*) para persistir no banco de dados.");
         this.btnSalvar.setText("Cadastrar");
+        this.chkAtivo.setSelected(true);
         limparCampos();
     }
 
@@ -209,6 +225,7 @@ public class ProdutoFormView extends JPanel {
         this.txtPreco.setText(produto.getPreco() != null ? produto.getPreco().toPlainString() : "");
         this.txtQuantidadeEstoque
                 .setText(produto.getQuantidadeEstoque() != null ? String.valueOf(produto.getQuantidadeEstoque()) : "0");
+        this.chkAtivo.setSelected(produto.isAtivo());
     }
 
     /**
@@ -220,12 +237,21 @@ public class ProdutoFormView extends JPanel {
         this.txtNome.setText("");
         this.txtPreco.setText("");
         this.txtQuantidadeEstoque.setText("");
+        this.chkAtivo.setSelected(true);
         this.txtCodigoBarras.requestFocusInWindow();
     }
 
     // ==========================================
     // GETTERS PARA CAMPOS E COMPONENTES
     // ==========================================
+
+    public boolean isAtivoSelecionado() {
+        return chkAtivo.isSelected();
+    }
+
+    public JCheckBox getChkAtivo() {
+        return chkAtivo;
+    }
 
     public Long getProdutoIdAtual() {
         return produtoIdAtual;

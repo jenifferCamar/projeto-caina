@@ -87,6 +87,7 @@ public class ProdutoListView extends JPanel {
         tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(280); // Nome
         tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(120); // Preço
         tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(100); // Quantidade
+        tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(90);  // Status
 
         JScrollPane scrollPane = new JScrollPane(tabelaProdutos);
         scrollPane.setBorder(BorderFactory.createTitledBorder(" Produtos Cadastrados "));
