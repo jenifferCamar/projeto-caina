@@ -3,6 +3,7 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
@@ -39,7 +40,7 @@ import java.util.Objects;
  * reativa a cada venda finalizada para atualizar o histórico de vendas.</li>
  * </ul>
  */
-public class VendaController {
+public class VendaController implements ProdutoObserver {
 
     private static final NumberFormat MOEDA_FORMATTER = NumberFormat
             .getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
@@ -73,6 +74,9 @@ public class VendaController {
         // Registra o VendaTableModel da view como observador do VendaService
         // para atualização reativa do histórico após cada venda finalizada
         this.vendaService.addObserver(this.vendaTableModel);
+
+        // Registra o Controller como observador de Produtos para atualizar o caixa reativamente
+        this.produtoService.addObserver(this);
 
         vincularEventos();
     }
@@ -122,6 +126,12 @@ public class VendaController {
     // TRATADORES DE EVENTOS (HANDLERS)
     // ==========================================
 
+    @Override
+    public void onProdutosChanged(List<Produto> produtos) {
+        // Atualiza a tabela do caixa com estritamente produtos ativos
+        caixaView.atualizarProdutos(produtoService.listarAtivos());
+    }
+
     private void onAdicionarAoCarrinho() {
         Produto produtoSelecionado = caixaView.getProdutoSelecionado();
         if (produtoSelecionado == null) {
@@ -129,6 +139,18 @@ public class VendaController {
                     mainFrame,
                     "Selecione um produto na tabela de produtos disponíveis.",
                     "Atenção - Seleção Necessária",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Validação preemptiva de status ativo do produto
+        try {
+            produtoService.validarDisponibilidadeParaVenda(produtoSelecionado);
+        } catch (IllegalStateException ex) {
+            JOptionPane.showMessageDialog(
+                    mainFrame,
+                    ex.getMessage(),
+                    "Produto Indisponível",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -228,10 +250,12 @@ public class VendaController {
             BigDecimal precoUnitario = (BigDecimal) caixaView.getTabelaCarrinho().getValueAt(i, 2);
 
             // Busca o produto pelo nome para obter o ID
-            Produto produto = produtoService.buscarPorNome(nomeProduto)
-                    .stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Produto não encontrado: " + nomeProduto));
+            Produto produto = produtoService.buscarPorNome(nomeProduto).stream()
+                    .findFirst()
+                    .orElseGet(() -> produtoService.listarTodos().stream()
+                            .filter(p -> p.getNome().equalsIgnoreCase(nomeProduto))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("Produto não encontrado: " + nomeProduto)));
 
             carrinho.add(new ItemCarrinho(
                     produto.getId(),
@@ -262,12 +286,12 @@ public class VendaController {
             atualizarTotalParcial();
             caixaView.getTxtCliente().setText("");
 
-        } catch (IllegalArgumentException ex) {
-            // Erros de validação amigáveis (estoque insuficiente, etc.)
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            // Erros de validação amigáveis (produto inativo, estoque insuficiente, etc.)
             JOptionPane.showMessageDialog(
                     mainFrame,
                     ex.getMessage(),
-                    "Validação de Venda",
+                    "Atenção - Operação Não Permitida",
                     JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
             // Erros inesperados de infraestrutura ou banco

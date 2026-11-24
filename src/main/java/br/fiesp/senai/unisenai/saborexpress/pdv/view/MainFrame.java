@@ -66,6 +66,29 @@ public class MainFrame extends JFrame {
 
         setContentPane(painelPrincipal);
 
+        // Barra de menus superior para alternar facilmente entre os módulos
+        javax.swing.JMenuBar menuBar = new javax.swing.JMenuBar();
+        javax.swing.JMenu menuModulos = new javax.swing.JMenu("Módulos");
+
+        javax.swing.JMenuItem itemCaixa = new javax.swing.JMenuItem("Caixa de Vendas (PDV)");
+        itemCaixa.addActionListener(e -> mostrarCaixa());
+
+        javax.swing.JMenuItem itemProdutos = new javax.swing.JMenuItem("Gerenciamento de Produtos");
+        itemProdutos.addActionListener(e -> mostrarLista());
+
+        javax.swing.JMenuItem itemHistorico = new javax.swing.JMenuItem("Histórico de Vendas");
+        itemHistorico.addActionListener(e -> mostrarHistorico());
+
+        javax.swing.JMenuItem itemClientes = new javax.swing.JMenuItem("Gerenciamento de Clientes");
+        itemClientes.addActionListener(e -> mostrarListaCliente());
+
+        menuModulos.add(itemCaixa);
+        menuModulos.add(itemProdutos);
+        menuModulos.add(itemHistorico);
+        menuModulos.add(itemClientes);
+        menuBar.add(menuModulos);
+        setJMenuBar(menuBar);
+
         // Configurações da Janela
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(850, 600));

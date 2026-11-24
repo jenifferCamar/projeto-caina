@@ -127,6 +127,9 @@ public class CaixaView extends JPanel {
         tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(250);
         tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(100);
         tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(80);
+        if (tabelaProdutos.getColumnModel().getColumnCount() > 5) {
+            tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(80);
+        }
 
         JScrollPane scrollProdutos = new JScrollPane(tabelaProdutos);
         scrollProdutos.setBorder(BorderFactory.createTitledBorder(" Cardápio Ativo "));
