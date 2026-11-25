@@ -1,11 +1,13 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.config.DataLoader;
+import br.fiesp.senai.unisenai.saborexpress.pdv.controller.ClienteController;
 import br.fiesp.senai.unisenai.saborexpress.pdv.controller.ProdutoController;
 import br.fiesp.senai.unisenai.saborexpress.pdv.controller.VendaController;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepositoryImpl;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepository;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepositoryImpl;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepositoryImpl;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.VendaRepository;
@@ -87,6 +89,11 @@ public class Main {
                 // Instanciação do Controlador conectando View e Model (MVC)
                 ProdutoController controller = new ProdutoController(mainFrame, service);
                 controller.inicializar();
+
+                // Instanciação do Controlador de Clientes
+                ClienteRepository clienteRepository = new ClienteRepositoryImpl();
+                ClienteController clienteController = new ClienteController(mainFrame, clienteRepository);
+                clienteController.inicializar();
 
                 // Instanciação dos repositórios e serviços de Venda
                 VendaRepository vendaRepository = new VendaRepositoryImpl();

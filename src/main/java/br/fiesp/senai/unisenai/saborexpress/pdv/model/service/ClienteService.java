@@ -85,12 +85,12 @@ public class ClienteService {
         return repository.buscarPorNome(nome);
     }
 
-    public List<Cliente> buscarPorNome(String nome) {
-        return repository.buscarPorNome(nome);
-    }
-
     public List<Cliente> buscarPorTelefone(String telefone) {
         return repository.buscarPorTelefone(telefone);
+    }
+
+    public List<Cliente> listarTodos() {
+        return repository.listarTodos();
     }
 
     private void validarRegrasCliente(Cliente cliente) {
