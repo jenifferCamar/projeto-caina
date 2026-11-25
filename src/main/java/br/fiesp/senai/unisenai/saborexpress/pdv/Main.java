@@ -16,6 +16,7 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.HistoricoVendasView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -102,7 +103,8 @@ public class Main {
 
                 // Instanciação do Controlador de Caixa conectando View e Model (MVC)
                 CaixaView caixaView = mainFrame.getCaixaView();
-                VendaController vendaController = new VendaController(mainFrame, caixaView, service, vendaService);
+                HistoricoVendasView historicoView = mainFrame.getHistoricoView();
+                VendaController vendaController = new VendaController(mainFrame, caixaView, historicoView, service, vendaService);
                 vendaController.inicializar();
 
                 // Gerenciamento de encerramento de conexões

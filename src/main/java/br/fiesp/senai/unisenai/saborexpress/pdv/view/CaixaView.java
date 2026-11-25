@@ -76,6 +76,7 @@ public class CaixaView extends JPanel {
     private final JTextField txtCliente;
     private final JButton btnFinalizar;
     private final JButton btnCancelar;
+    private final JButton btnHistorico;
 
     public CaixaView() {
         setLayout(new BorderLayout(15, 15));
@@ -250,6 +251,10 @@ public class CaixaView extends JPanel {
         // Botões à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
+        btnHistorico = new JButton("Histórico de Vendas");
+        btnHistorico.setPreferredSize(new Dimension(160, 35));
+        btnHistorico.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
         btnCancelar = new JButton("Cancelar Venda");
         btnCancelar.setPreferredSize(new Dimension(140, 35));
         btnCancelar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -258,6 +263,7 @@ public class CaixaView extends JPanel {
         btnFinalizar.setPreferredSize(new Dimension(160, 35));
         btnFinalizar.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
+        painelBotoes.add(btnHistorico);
         painelBotoes.add(btnCancelar);
         painelBotoes.add(btnFinalizar);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
@@ -408,6 +414,10 @@ public class CaixaView extends JPanel {
 
     public JButton getBtnCancelar() {
         return btnCancelar;
+    }
+
+    public JButton getBtnHistorico() {
+        return btnHistorico;
     }
 
     public JLabel getLblTotal() {
