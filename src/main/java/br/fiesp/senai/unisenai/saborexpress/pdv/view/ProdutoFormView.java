@@ -1,5 +1,8 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.util.FormatUtils;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,16 +11,19 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import javax.swing.text.NumberFormatter;
 
 /**
  * Visão (View) do Formulário de Cadastro e Edição de Produtos.
@@ -45,8 +51,8 @@ public class ProdutoFormView extends JPanel {
     private final JTextField txtId;
     private final JTextField txtCodigoBarras;
     private final JTextField txtNome;
-    private final JTextField txtPreco;
-    private final JTextField txtQuantidadeEstoque;
+    private final JFormattedTextField txtPreco;
+    private final JFormattedTextField txtQuantidadeEstoque;
 
     private final JButton btnSalvar;
     private final JButton btnLimpar;
@@ -130,9 +136,14 @@ public class ProdutoFormView extends JPanel {
         gbc.gridy = 3;
         gbc.weightx = 0.0;
         painelCampos.add(new JLabel("Preço Unitário R$ (*):"), gbc);
-        txtPreco = new JTextField();
+        NumberFormat formatoMoeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        NumberFormatter formatterMoeda = new NumberFormatter(formatoMoeda);
+        formatterMoeda.setAllowsInvalid(false);
+        formatterMoeda.setMinimum(BigDecimal.ZERO);
+        txtPreco = new JFormattedTextField(formatterMoeda);
         txtPreco.setPreferredSize(new Dimension(150, 30));
-        txtPreco.setToolTipText("Exemplo: 19.99 (Utilize ponto ou vírgula)");
+        txtPreco.setToolTipText("Exemplo: 19,99");
+        txtPreco.setValue(BigDecimal.ZERO);
         gbc.gridx = 1;
         gbc.gridy = 3;
         gbc.weightx = 1.0;
@@ -143,9 +154,14 @@ public class ProdutoFormView extends JPanel {
         gbc.gridy = 4;
         gbc.weightx = 0.0;
         painelCampos.add(new JLabel("Quantidade Estoque (*):"), gbc);
-        txtQuantidadeEstoque = new JTextField();
+        NumberFormat formatoInteiro = NumberFormat.getIntegerInstance();
+        NumberFormatter formatterInteiro = new NumberFormatter(formatoInteiro);
+        formatterInteiro.setAllowsInvalid(false);
+        formatterInteiro.setMinimum(0);
+        txtQuantidadeEstoque = new JFormattedTextField(formatterInteiro);
         txtQuantidadeEstoque.setPreferredSize(new Dimension(150, 30));
         txtQuantidadeEstoque.setToolTipText("Exemplo: 10 (Número inteiro positivo ou zero)");
+        txtQuantidadeEstoque.setValue(0);
         gbc.gridx = 1;
         gbc.gridy = 4;
         gbc.weightx = 1.0;
@@ -206,9 +222,8 @@ public class ProdutoFormView extends JPanel {
         this.txtId.setText(String.valueOf(produto.getId()));
         this.txtCodigoBarras.setText(produto.getCodigoBarras() != null ? produto.getCodigoBarras() : "");
         this.txtNome.setText(produto.getNome() != null ? produto.getNome() : "");
-        this.txtPreco.setText(produto.getPreco() != null ? produto.getPreco().toPlainString() : "");
-        this.txtQuantidadeEstoque
-                .setText(produto.getQuantidadeEstoque() != null ? String.valueOf(produto.getQuantidadeEstoque()) : "0");
+        this.txtPreco.setValue(produto.getPreco() != null ? produto.getPreco() : BigDecimal.ZERO);
+        this.txtQuantidadeEstoque.setValue(produto.getQuantidadeEstoque() != null ? produto.getQuantidadeEstoque() : 0);
     }
 
     /**
@@ -218,8 +233,8 @@ public class ProdutoFormView extends JPanel {
         this.txtId.setText("[Gerado após salvar]");
         this.txtCodigoBarras.setText("");
         this.txtNome.setText("");
-        this.txtPreco.setText("");
-        this.txtQuantidadeEstoque.setText("");
+        this.txtPreco.setValue(BigDecimal.ZERO);
+        this.txtQuantidadeEstoque.setValue(0);
         this.txtCodigoBarras.requestFocusInWindow();
     }
 
@@ -240,10 +255,18 @@ public class ProdutoFormView extends JPanel {
     }
 
     public String getPrecoTexto() {
-        return txtPreco.getText().trim();
+        Object value = txtPreco.getValue();
+        if (value instanceof BigDecimal) {
+            return ((BigDecimal) value).toPlainString();
+        }
+        return txtPreco.getText().trim().replace(",", ".");
     }
 
     public String getQuantidadeEstoqueTexto() {
+        Object value = txtQuantidadeEstoque.getValue();
+        if (value instanceof Number) {
+            return String.valueOf(((Number) value).intValue());
+        }
         return txtQuantidadeEstoque.getText().trim();
     }
 
