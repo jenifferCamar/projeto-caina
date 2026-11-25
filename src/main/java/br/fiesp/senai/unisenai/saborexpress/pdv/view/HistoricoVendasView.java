@@ -65,6 +65,10 @@ public class HistoricoVendasView extends JPanel {
     private final JButton btnAtualizar;
     private final JButton btnVoltar;
 
+    public HistoricoVendasView() {
+        this(new VendaTableModel());
+    }
+
     public HistoricoVendasView(VendaTableModel vendasTableModel) {
         this.vendasTableModel = vendasTableModel;
         this.itensTableModel = new ItensVendaTableModel();
