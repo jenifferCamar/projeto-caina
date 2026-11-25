@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -89,8 +90,9 @@ public class ClienteListView extends JPanel {
         painelBotoes.add(txtBusca);
         painelBotoes.add(btnBuscar);
         painelBotoes.add(btnLimparFiltro);
-        painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
-        painelBotoes.add(btnRecarregar); painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
+        painelBotoes.add(btnExcluir);
+        painelBotoes.add(btnEditar);
+        painelBotoes.add(btnNovo);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
         add(painelRodape, BorderLayout.SOUTH);
     }
