@@ -1,11 +1,13 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.config.DataLoader;
+import br.fiesp.senai.unisenai.saborexpress.pdv.controller.ClienteController;
 import br.fiesp.senai.unisenai.saborexpress.pdv.controller.ProdutoController;
 import br.fiesp.senai.unisenai.saborexpress.pdv.controller.VendaController;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepositoryImpl;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepository;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepositoryImpl;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepositoryImpl;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.VendaRepository;
@@ -14,6 +16,7 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.HistoricoVendasView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -89,13 +92,19 @@ public class Main {
                 ProdutoController controller = new ProdutoController(mainFrame, service);
                 controller.inicializar();
 
+                // Instanciação do Controlador de Clientes
+                ClienteRepository clienteRepository = new ClienteRepositoryImpl();
+                ClienteController clienteController = new ClienteController(mainFrame, clienteRepository);
+                clienteController.inicializar();
+
                 // Instanciação dos repositórios e serviços de Venda
                 VendaRepository vendaRepository = new VendaRepositoryImpl();
                 VendaService vendaService = new VendaService(vendaRepository, service);
 
                 // Instanciação do Controlador de Caixa conectando View e Model (MVC)
                 CaixaView caixaView = mainFrame.getCaixaView();
-                VendaController vendaController = new VendaController(mainFrame, caixaView, service, vendaService);
+                HistoricoVendasView historicoView = mainFrame.getHistoricoView();
+                VendaController vendaController = new VendaController(mainFrame, caixaView, historicoView, service, vendaService);
                 vendaController.inicializar();
 
                 // Gerenciamento de encerramento de conexões

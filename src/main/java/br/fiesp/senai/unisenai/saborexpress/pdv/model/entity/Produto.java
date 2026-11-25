@@ -46,8 +46,8 @@ import java.util.Objects;
 @NamedQueries({
         @NamedQuery(name = "Produto.listarTodos", query = "SELECT p FROM Produto p ORDER BY p.nome ASC"),
         @NamedQuery(name = "Produto.buscarPorCodigoBarras", query = "SELECT p FROM Produto p WHERE p.codigoBarras = :codigoBarras"),
-        @NamedQuery(name = "Produto.listarAtivos", query = "SELECT p FROM Produto p WHERE p.ativo = true ORDER BY p.nome ASC"),
-        @NamedQuery(name = "Produto.listarPorCategoria", query = "SELECT p FROM Produto p WHERE p.categoria.id = :categoriaId AND p.ativo = true ORDER BY p.nome ASC")
+        @NamedQuery(name = "Produto.listarAtivos", query = "SELECT p FROM Produto p WHERE (p.ativo IS NULL OR p.ativo = true) ORDER BY p.nome ASC"),
+        @NamedQuery(name = "Produto.listarPorCategoria", query = "SELECT p FROM Produto p WHERE p.categoria.id = :categoriaId AND (p.ativo IS NULL OR p.ativo = true) ORDER BY p.nome ASC")
 })
 public class Produto implements Serializable {
 
@@ -135,7 +135,21 @@ public class Produto implements Serializable {
                    Categoria categoria, Boolean ativo, Integer estoque) {
         this(codigoBarras, nome, descricao, preco, categoria, estoque);
         this.id = id;
-        this.ativo = ativo;
+        this.ativo = (ativo != null) ? ativo : Boolean.TRUE;
+    }
+
+    public Produto(String codigoBarras, String nome, String descricao, BigDecimal preco,
+                   Categoria categoria, Boolean ativo, Integer estoque) {
+        this(codigoBarras, nome, descricao, preco, categoria, estoque);
+        this.ativo = (ativo != null) ? ativo : Boolean.TRUE;
+    }
+
+    @jakarta.persistence.PrePersist
+    @jakarta.persistence.PreUpdate
+    public void prePersist() {
+        if (this.ativo == null) {
+            this.ativo = Boolean.TRUE;
+        }
     }
 
     // ==========================================
@@ -214,11 +228,15 @@ public class Produto implements Serializable {
     }
 
     public Boolean getAtivo() {
-        return ativo;
+        return (ativo != null) ? ativo : Boolean.TRUE;
     }
 
     public void setAtivo(Boolean ativo) {
-        this.ativo = ativo;
+        this.ativo = (ativo != null) ? ativo : Boolean.TRUE;
+    }
+
+    public boolean isAtivo() {
+        return Boolean.TRUE.equals(this.getAtivo());
     }
 
     public Integer getEstoque() {

@@ -137,6 +137,9 @@ public class VendaService {
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Produto não encontrado: ID #" + itemCarrinho.getProdutoId()));
 
+            // Validação preemptiva de produto inativo
+            produtoService.validarDisponibilidadeParaVenda(produto);
+
             Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
             if (estoqueAtual < itemCarrinho.getQuantidade()) {
                 throw new IllegalArgumentException(
