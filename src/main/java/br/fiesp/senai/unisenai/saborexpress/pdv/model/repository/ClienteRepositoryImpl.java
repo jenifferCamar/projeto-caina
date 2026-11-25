@@ -124,6 +124,9 @@ public class ClienteRepositoryImpl implements ClienteRepository {
             if (em.isOpen()) em.close();
         }
     }
+
+    @Override
+    public List<Cliente> listarTodos() {
         EntityManager em = emf.createEntityManager();
         try {
             TypedQuery<Cliente> query = em.createNamedQuery("Cliente.listarTodos", Cliente.class);
