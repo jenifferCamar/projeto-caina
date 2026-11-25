@@ -3,6 +3,7 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.service;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ProdutoInativoException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepository;
@@ -242,16 +243,42 @@ public class ProdutoService {
     }
 
     /**
+     * Valida preemptivamente se o produto está ativo e disponível para comercialização.
+     *
+     * @param produto Produto a ser validado.
+     * @throws ProdutoInativoException se o produto estiver desativado.
+     * @throws IllegalArgumentException se o produto for nulo.
+     */
+    public void validarDisponibilidadeParaVenda(Produto produto) {
+        if (produto == null) {
+            throw new IllegalArgumentException("Produto não informado para validação.");
+        }
+        if (!produto.isAtivo()) {
+            throw new ProdutoInativoException(produto.getId(), produto.getNome());
+        }
+    }
+
+    /**
      * Retorna a listagem de produtos ativos (visíveis no cardápio), ordenados por nome.
      *
      * @return Lista de produtos ativos.
      */
     public List<Produto> listarAtivos() {
-        return produtoRepository.findByAtivoTrueOrderByNomeAsc();
+        return produtoRepository.findByAtivoTrue();
     }
 
     /**
      * Retorna a listagem de produtos ativos de uma categoria específica.
+     *
+     * @param categoria Categoria dos produtos.
+     * @return Lista de produtos ativos da categoria.
+     */
+    public List<Produto> listarAtivosPorCategoria(Categoria categoria) {
+        return produtoRepository.findByAtivoTrueAndCategoria(categoria);
+    }
+
+    /**
+     * Retorna a listagem de produtos ativos de uma categoria específica pelo ID.
      *
      * @param categoriaId ID da categoria.
      * @return Lista de produtos ativos da categoria.
@@ -364,7 +391,7 @@ public class ProdutoService {
         }
 
         if (produto.getAtivo() == null) {
-            throw new ValidationException("O status Ativo/Inativo é obrigatório.");
+            produto.setAtivo(Boolean.TRUE);
         }
 
         if (produto.getEstoque() == null) {

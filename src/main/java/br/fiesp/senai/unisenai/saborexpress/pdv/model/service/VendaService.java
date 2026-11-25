@@ -137,6 +137,9 @@ public class VendaService {
             Produto produto = produtoService.buscarPorId(itemCarrinho.getProdutoId())
                     .orElseThrow(() -> new BusinessException("Produto não encontrado: " + itemCarrinho.getProdutoId()));
 
+            // Validação preemptiva de produto inativo
+            produtoService.validarDisponibilidadeParaVenda(produto);
+
             Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
             if (estoqueAtual < itemCarrinho.getQuantidade()) {
                 throw new BusinessException(String.format("Estoque insuficiente para '%s': disponível=%d, solicitado=%d.", produto.getNome(), estoqueAtual, itemCarrinho.getQuantidade()));

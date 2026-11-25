@@ -38,7 +38,8 @@ public class ProdutoTableModel extends AbstractTableModel {
             "Código de Barras",
             "Nome do Produto",
             "Preço Unitário",
-            "Qtd. Estoque"
+            "Qtd. Estoque",
+            "Status"
     };
 
     private static final NumberFormat MOEDA_FORMATTER = NumberFormat
@@ -105,7 +106,7 @@ public class ProdutoTableModel extends AbstractTableModel {
     public Class<?> getColumnClass(int columnIndex) {
         return switch (columnIndex) {
             case 0 -> Long.class;
-            case 1, 2, 3 -> String.class;
+            case 1, 2, 3, 5 -> String.class;
             case 4 -> Integer.class;
             default -> Object.class;
         };
@@ -127,6 +128,7 @@ public class ProdutoTableModel extends AbstractTableModel {
             case 2 -> produto.getNome();
             case 3 -> MOEDA_FORMATTER.format(produto.getPreco() != null ? produto.getPreco() : BigDecimal.ZERO);
             case 4 -> produto.getQuantidadeEstoque();
+            case 5 -> produto.isAtivo() ? "Ativo" : "Inativo";
             default -> null;
         };
     }

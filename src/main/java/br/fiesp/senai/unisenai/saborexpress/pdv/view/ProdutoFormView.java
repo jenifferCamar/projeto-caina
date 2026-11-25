@@ -19,6 +19,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,20 +29,12 @@ import javax.swing.text.NumberFormatter;
 /**
  * Visão (View) do Formulário de Cadastro e Edição de Produtos.
  * <p>
- * <b>Conceito Pedagógico (Padrão MVC - Separação da Camada View):</b>
+ * Padrão MVC - Separação da Camada View:
  * <ul>
- * <li>Esta classe é estritamente responsável pela apresentação gráfica e coleta
- * de dados brutos
- * digitados pelo usuário.</li>
- * <li><b>Não contém:</b> Acesso a banco de dados (JPA/SQL), regras de negócio
- * ou lógica transacional.</li>
- * <li>Os botões e campos de entrada expõem seus ouvintes/ações diretamente ao
- * {@code ProdutoController},
- * preservando o Princípio de Inversão de Controle e Responsabilidade Única
- * (SOLID).</li>
+ * <li>Esta classe é estritamente responsável pela apresentação gráfica e coleta de dados brutos digitados pelo usuário.</li>
+ * <li>Não contém acesso a banco de dados (JPA/SQL), regras de negócio ou lógica transacional.</li>
+ * <li>Os botões e campos de entrada expõem seus ouvintes/ações diretamente ao ProdutoController.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class ProdutoFormView extends JPanel {
 
@@ -53,6 +46,7 @@ public class ProdutoFormView extends JPanel {
     private final JTextField txtNome;
     private final JFormattedTextField txtPreco;
     private final JFormattedTextField txtQuantidadeEstoque;
+    private final JCheckBox chkAtivo;
 
     private final JButton btnSalvar;
     private final JButton btnLimpar;
@@ -167,6 +161,19 @@ public class ProdutoFormView extends JPanel {
         gbc.weightx = 1.0;
         painelCampos.add(txtQuantidadeEstoque, gbc);
 
+        // Campo Ativo / Inativo
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weightx = 0.0;
+        painelCampos.add(new JLabel("Status do Produto:"), gbc);
+        chkAtivo = new JCheckBox("Produto Ativo (disponível para vendas no Caixa)");
+        chkAtivo.setSelected(true);
+        chkAtivo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.weightx = 1.0;
+        painelCampos.add(chkAtivo, gbc);
+
         // Painel envelopador para manter o formulário no topo
         JPanel painelEnvelopador = new JPanel(new BorderLayout());
         painelEnvelopador.add(painelCampos, BorderLayout.NORTH);
@@ -201,6 +208,7 @@ public class ProdutoFormView extends JPanel {
         this.lblTitulo.setText("Novo Produto - Cadastro");
         this.lblSubtitulo.setText("Preencha todos os campos obrigatórios (*) para persistir no banco de dados.");
         this.btnSalvar.setText("Cadastrar");
+        this.chkAtivo.setSelected(true);
         limparCampos();
     }
 
@@ -224,6 +232,7 @@ public class ProdutoFormView extends JPanel {
         this.txtNome.setText(produto.getNome() != null ? produto.getNome() : "");
         this.txtPreco.setValue(produto.getPreco() != null ? produto.getPreco() : BigDecimal.ZERO);
         this.txtQuantidadeEstoque.setValue(produto.getQuantidadeEstoque() != null ? produto.getQuantidadeEstoque() : 0);
+        this.chkAtivo.setSelected(produto.isAtivo());
     }
 
     /**
@@ -235,12 +244,21 @@ public class ProdutoFormView extends JPanel {
         this.txtNome.setText("");
         this.txtPreco.setValue(BigDecimal.ZERO);
         this.txtQuantidadeEstoque.setValue(0);
+        this.chkAtivo.setSelected(true);
         this.txtCodigoBarras.requestFocusInWindow();
     }
 
     // ==========================================
     // GETTERS PARA CAMPOS E COMPONENTES
     // ==========================================
+
+    public boolean isAtivoSelecionado() {
+        return chkAtivo.isSelected();
+    }
+
+    public JCheckBox getChkAtivo() {
+        return chkAtivo;
+    }
 
     public Long getProdutoIdAtual() {
         return produtoIdAtual;
@@ -259,7 +277,18 @@ public class ProdutoFormView extends JPanel {
         if (value instanceof BigDecimal) {
             return ((BigDecimal) value).toPlainString();
         }
-        return txtPreco.getText().trim().replace(",", ".");
+        if (value instanceof Number) {
+            return BigDecimal.valueOf(((Number) value).doubleValue()).toPlainString();
+        }
+        String texto = txtPreco.getText();
+        if (texto != null && !texto.trim().isEmpty()) {
+            try {
+                return FormatUtils.parseBigDecimal(texto).toPlainString();
+            } catch (Exception ignored) {
+                return texto.trim().replace("R$", "").replace(" ", "").replace(".", "").replace(",", ".");
+            }
+        }
+        return "0.00";
     }
 
     public String getQuantidadeEstoqueTexto() {
@@ -267,7 +296,15 @@ public class ProdutoFormView extends JPanel {
         if (value instanceof Number) {
             return String.valueOf(((Number) value).intValue());
         }
-        return txtQuantidadeEstoque.getText().trim();
+        String texto = txtQuantidadeEstoque.getText();
+        if (texto != null && !texto.trim().isEmpty()) {
+            try {
+                return String.valueOf(FormatUtils.parseInteiro(texto));
+            } catch (Exception ignored) {
+                return texto.trim();
+            }
+        }
+        return "0";
     }
 
     public JButton getBtnSalvar() {

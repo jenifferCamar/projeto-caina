@@ -1,5 +1,6 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
@@ -210,10 +211,15 @@ public class ProdutoController implements ProdutoObserver {
             }
 
             Long id = formView.getProdutoIdAtual();
+            boolean ativo = formView.isAtivoSelecionado();
 
             if (id == null) {
                 // Modo Cadastro (Novo)
-                Produto novoProduto = new Produto(codigoBarras, nome, preco, quantidadeEstoque);
+                Categoria categoriaPadrao = service.listarCategoriasAtivas().stream()
+                        .findFirst()
+                        .orElse(null);
+
+                Produto novoProduto = new Produto(codigoBarras, nome, "", preco, categoriaPadrao, ativo, quantidadeEstoque);
                 service.salvar(novoProduto);
                 JOptionPane.showMessageDialog(
                         mainFrame,
@@ -222,7 +228,11 @@ public class ProdutoController implements ProdutoObserver {
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
                 // Modo Atualização (Edição)
-                Produto produtoAtualizado = new Produto(id, codigoBarras, nome, preco, quantidadeEstoque);
+                Produto existente = service.buscarPorId(id).orElse(null);
+                Categoria categoria = (existente != null) ? existente.getCategoria() : null;
+                String descricao = (existente != null) ? existente.getDescricao() : "";
+
+                Produto produtoAtualizado = new Produto(id, codigoBarras, nome, descricao, preco, categoria, ativo, quantidadeEstoque);
                 service.atualizar(produtoAtualizado);
                 JOptionPane.showMessageDialog(
                         mainFrame,
