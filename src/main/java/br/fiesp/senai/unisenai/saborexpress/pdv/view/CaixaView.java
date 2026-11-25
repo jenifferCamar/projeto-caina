@@ -16,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.NumberFormatter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -75,6 +76,7 @@ public class CaixaView extends JPanel {
     private final JTextField txtCliente;
     private final JButton btnFinalizar;
     private final JButton btnCancelar;
+    private final JButton btnHistorico;
 
     public CaixaView() {
         setLayout(new BorderLayout(15, 15));
@@ -89,7 +91,7 @@ public class CaixaView extends JPanel {
         lblTitulo = new JLabel("Caixa - PDV");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
 
-        JLabel lblSubtitulo = new JLabel("Finalização de vendas de lanches do cardápio ativo.");
+        lblSubtitulo = new JLabel("Finalização de vendas de lanches do cardápio ativo.");
         lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblSubtitulo.setForeground(Color.GRAY);
 
@@ -130,6 +132,9 @@ public class CaixaView extends JPanel {
         tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(250);
         tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(100);
         tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(80);
+        if (tabelaProdutos.getColumnModel().getColumnCount() > 5) {
+            tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(80);
+        }
 
         JScrollPane scrollProdutos = new JScrollPane(tabelaProdutos);
         scrollProdutos.setBorder(BorderFactory.createTitledBorder(" Cardápio Ativo "));
@@ -139,8 +144,13 @@ public class CaixaView extends JPanel {
         JPanel painelAdd = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         JLabel lblQtd = new JLabel("Quantidade:");
         lblQtd.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtQuantidade = new JFormattedTextField(NumberFormat.getIntegerInstance());
-        ((NumberFormat) txtQuantidade.getFormatter().getFormat()).setMinimumIntegerDigits(1);
+        NumberFormat formatoInteiro = NumberFormat.getIntegerInstance();
+        formatoInteiro.setMinimumIntegerDigits(1);
+        NumberFormatter formatterQtd = new NumberFormatter(formatoInteiro);
+        formatterQtd.setValueClass(Integer.class);
+        formatterQtd.setAllowsInvalid(false);
+        formatterQtd.setMinimum(1);
+        txtQuantidade = new JFormattedTextField(formatterQtd);
         txtQuantidade.setValue(1);
         txtQuantidade.setPreferredSize(new Dimension(60, 30));
         btnAdicionarCarrinho = new JButton("Adicionar ao Carrinho");
@@ -241,6 +251,10 @@ public class CaixaView extends JPanel {
         // Botões à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
+        btnHistorico = new JButton("Histórico de Vendas");
+        btnHistorico.setPreferredSize(new Dimension(160, 35));
+        btnHistorico.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
         btnCancelar = new JButton("Cancelar Venda");
         btnCancelar.setPreferredSize(new Dimension(140, 35));
         btnCancelar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -249,6 +263,7 @@ public class CaixaView extends JPanel {
         btnFinalizar.setPreferredSize(new Dimension(160, 35));
         btnFinalizar.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
+        painelBotoes.add(btnHistorico);
         painelBotoes.add(btnCancelar);
         painelBotoes.add(btnFinalizar);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
@@ -303,6 +318,15 @@ public class CaixaView extends JPanel {
      * Atualiza o texto do total parcial exibido no rodapé.
      *
      * @param total Valor total formatado como string (ex: "R$ 45,90").
+     */
+    public void atualizarTotal(String total) {
+        lblTotal.setText("Total: " + total);
+    }
+
+    /**
+     * Atualiza o texto do total parcial exibido no rodapé a partir de BigDecimal.
+     *
+     * @param total Valor total como BigDecimal.
      */
     public void atualizarTotal(BigDecimal total) {
         lblTotal.setText("Total: " + FormatUtils.formatarMoeda(total));
@@ -390,6 +414,10 @@ public class CaixaView extends JPanel {
 
     public JButton getBtnCancelar() {
         return btnCancelar;
+    }
+
+    public JButton getBtnHistorico() {
+        return btnHistorico;
     }
 
     public JLabel getLblTotal() {

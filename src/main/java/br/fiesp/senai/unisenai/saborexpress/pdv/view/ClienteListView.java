@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -78,7 +79,10 @@ public class ClienteListView extends JPanel {
         btnEditar = new JButton("Editar"); btnEditar.setPreferredSize(new Dimension(110, 35));
         btnNovo = new JButton("+ Novo Cliente"); btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        painelBotoes.add(btnRecarregar); painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
+        painelBotoes.add(btnRecarregar);
+        painelBotoes.add(btnExcluir);
+        painelBotoes.add(btnEditar);
+        painelBotoes.add(btnNovo);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
         add(painelRodape, BorderLayout.SOUTH);
     }

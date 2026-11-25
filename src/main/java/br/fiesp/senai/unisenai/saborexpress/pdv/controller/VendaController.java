@@ -3,10 +3,11 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.HistoricoVendasView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel.VendaTableModel;
 
@@ -19,7 +20,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Controlador Principal do Módulo de Caixa (Padrão MVC & Mediator).
+ * Controlador Principal do Módulo de Caixa e Histórico de Vendas (Padrão MVC & Mediator).
  * <p>
  * <b>Conceito Pedagógico (Padrão Controller & Inversão de Dependência):</b>
  * <ul>
@@ -27,43 +28,55 @@ import java.util.Objects;
  * disparadas na tela de Caixa (botões de adicionar, remover, finalizar,
  * cancelar), valida e converte dados de entrada e aciona a camada de negócio
  * ({@link VendaService} e {@link ProdutoService}).</li>
- * <li><b>Isolamento Completo:</b> A View ({@link CaixaView}) nunca se comunica
- * diretamente com o Repositório ou banco de dados. Toda a lógica de negócio,
- * validação de estoque e persistência fica estritamente nos Services.</li>
+ * <li><b>Isolamento Completo:</b> A View ({@link CaixaView},
+ * {@link HistoricoVendasView}) nunca se comunica diretamente com o Repositório
+ * ou banco de dados. Toda a lógica de negócio, validação de estoque e
+ * persistência fica estritamente nos Services.</li>
  * <li><b>Inversão de Dependência (IoC):</b> O Controller recebe suas
  * dependências no construtor através de classes de serviço, desacoplando a
  * camada de controle da instanciação física.</li>
- * <li><b>Integração com o Padrão Observer:</b> O Controller implementa
- * {@link VendaObserver}, sendo notificado de forma reativa a cada venda
- * finalizada para atualizar o {@link VendaTableModel} do histórico de vendas.</li>
+ * <li><b>Integração com o Padrão Observer:</b> O {@link VendaTableModel} é
+ * registrado como observador do {@link VendaService}, sendo notificado de forma
+ * reativa a cada venda finalizada para atualizar o histórico de vendas.</li>
  * </ul>
  */
-public class VendaController implements VendaObserver {
+public class VendaController implements ProdutoObserver {
 
     private static final NumberFormat MOEDA_FORMATTER = NumberFormat
             .getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
 
     private final MainFrame mainFrame;
     private final CaixaView caixaView;
+    private final HistoricoVendasView historicoView;
     private final VendaTableModel vendaTableModel;
     private final ProdutoService produtoService;
     private final VendaService vendaService;
 
     /**
-     * Construtor recebendo a janela principal, a view de caixa e os serviços.
+     * Construtor recebendo a janela principal, as views e os serviços.
      *
      * @param mainFrame    Janela principal da aplicação.
      * @param caixaView    Visão do caixa de vendas.
+     * @param historicoView Visão do histórico de vendas.
      * @param produtoService Camada de serviços de produtos.
      * @param vendaService  Camada de serviços de vendas.
      */
     public VendaController(MainFrame mainFrame, CaixaView caixaView,
+                           HistoricoVendasView historicoView,
                            ProdutoService produtoService, VendaService vendaService) {
         this.mainFrame = Objects.requireNonNull(mainFrame, "MainFrame não pode ser nulo.");
         this.caixaView = Objects.requireNonNull(caixaView, "CaixaView não pode ser nula.");
+        this.historicoView = Objects.requireNonNull(historicoView, "HistoricoVendasView não pode ser nula.");
         this.produtoService = Objects.requireNonNull(produtoService, "ProdutoService não pode ser nulo.");
         this.vendaService = Objects.requireNonNull(vendaService, "VendaService não pode ser nulo.");
-        this.vendaTableModel = new VendaTableModel();
+        this.vendaTableModel = this.historicoView.getVendasTableModel();
+
+        // Registra o VendaTableModel da view como observador do VendaService
+        // para atualização reativa do histórico após cada venda finalizada
+        this.vendaService.addObserver(this.vendaTableModel);
+
+        // Registra o Controller como observador de Produtos para atualizar o caixa reativamente
+        this.produtoService.addObserver(this);
 
         vincularEventos();
     }
@@ -73,7 +86,7 @@ public class VendaController implements VendaObserver {
      * o cardápio de produtos ativos e exibindo a tela de caixa.
      */
     public void inicializar() {
-        this.vendaService.addObserver(this);
+        // Dispara notificação inicial para carregar vendas existentes no histórico
         this.vendaService.notificarObservadores();
 
         // Carrega produtos ativos do cardápio na view
@@ -84,22 +97,40 @@ public class VendaController implements VendaObserver {
 
     /**
      * Configura os ouvintes de eventos (Listeners) nos componentes visuais da
-     * tela de Caixa.
+     * tela de Caixa e Histórico.
      */
     private void vincularEventos() {
-        // --- Eventos do Carrinho ---
+        // --- Eventos do Carrinho (Caixa) ---
         caixaView.getBtnAdicionarCarrinho().addActionListener(e -> onAdicionarAoCarrinho());
         caixaView.getBtnRemoverCarrinho().addActionListener(e -> onRemoverDoCarrinho());
         caixaView.getBtnLimparCarrinho().addActionListener(e -> onLimparCarrinho());
 
-        // --- Eventos de Finalização ---
+        // --- Eventos de Finalização (Caixa) ---
         caixaView.getBtnFinalizar().addActionListener(e -> onFinalizarVenda());
         caixaView.getBtnCancelar().addActionListener(e -> onCancelarVenda());
+
+        // --- Eventos de Navegação ---
+        caixaView.getBtnHistorico().addActionListener(e -> mainFrame.mostrarHistorico());
+        historicoView.getBtnVoltar().addActionListener(e -> mainFrame.mostrarCaixa());
+
+        // --- Eventos do Histórico ---
+        historicoView.getBtnAtualizar().addActionListener(e -> onAtualizarHistorico());
+        historicoView.getTabelaVendas().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                onVendaSelecionadaNoHistorico();
+            }
+        });
     }
 
     // ==========================================
     // TRATADORES DE EVENTOS (HANDLERS)
     // ==========================================
+
+    @Override
+    public void onProdutosChanged(List<Produto> produtos) {
+        // Atualiza a tabela do caixa com estritamente produtos ativos
+        caixaView.atualizarProdutos(produtoService.listarAtivos());
+    }
 
     private void onAdicionarAoCarrinho() {
         Produto produtoSelecionado = caixaView.getProdutoSelecionado();
@@ -108,6 +139,18 @@ public class VendaController implements VendaObserver {
                     mainFrame,
                     "Selecione um produto na tabela de produtos disponíveis.",
                     "Atenção - Seleção Necessária",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Validação preemptiva de status ativo do produto
+        try {
+            produtoService.validarDisponibilidadeParaVenda(produtoSelecionado);
+        } catch (IllegalStateException ex) {
+            JOptionPane.showMessageDialog(
+                    mainFrame,
+                    ex.getMessage(),
+                    "Produto Indisponível",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -127,10 +170,6 @@ public class VendaController implements VendaObserver {
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        // Verifica se o produto já está no carrinho (evita duplicatas)
-        // (A view permite adicionar múltiplas vezes; o controle de duplicidade
-        // fica a cargo da regra de negócio no service, se necessário.)
 
         BigDecimal precoUnitario = produtoSelecionado.getPreco();
         BigDecimal subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
@@ -211,10 +250,12 @@ public class VendaController implements VendaObserver {
             BigDecimal precoUnitario = (BigDecimal) caixaView.getTabelaCarrinho().getValueAt(i, 2);
 
             // Busca o produto pelo nome para obter o ID
-            Produto produto = produtoService.buscarPorNome(nomeProduto)
-                    .stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Produto não encontrado: " + nomeProduto));
+            Produto produto = produtoService.buscarPorNome(nomeProduto).stream()
+                    .findFirst()
+                    .orElseGet(() -> produtoService.listarTodos().stream()
+                            .filter(p -> p.getNome().equalsIgnoreCase(nomeProduto))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("Produto não encontrado: " + nomeProduto)));
 
             carrinho.add(new ItemCarrinho(
                     produto.getId(),
@@ -245,12 +286,12 @@ public class VendaController implements VendaObserver {
             atualizarTotalParcial();
             caixaView.getTxtCliente().setText("");
 
-        } catch (IllegalArgumentException ex) {
-            // Erros de validação amigáveis (estoque insuficiente, etc.)
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            // Erros de validação amigáveis (produto inativo, estoque insuficiente, etc.)
             JOptionPane.showMessageDialog(
                     mainFrame,
                     ex.getMessage(),
-                    "Validação de Venda",
+                    "Atenção - Operação Não Permitida",
                     JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
             // Erros inesperados de infraestrutura ou banco
@@ -278,6 +319,38 @@ public class VendaController implements VendaObserver {
         }
     }
 
+    private void onAtualizarHistorico() {
+        this.vendaService.notificarObservadores();
+    }
+
+    private void onVendaSelecionadaNoHistorico() {
+        int selectedRow = historicoView.getTabelaVendas().getSelectedRow();
+        if (selectedRow < 0) {
+            historicoView.exibirDetalhesVenda(null, java.util.Collections.emptyList());
+            return;
+        }
+
+        Venda vendaResumo = historicoView.getVendasTableModel().getVendaAt(selectedRow);
+        if (vendaResumo == null || vendaResumo.getId() == null) {
+            historicoView.exibirDetalhesVenda(null, java.util.Collections.emptyList());
+            return;
+        }
+
+        // Carrega a venda com itens utilizando buscarPorId (LEFT JOIN FETCH) para evitar LazyInitializationException
+        vendaService.buscarPorId(vendaResumo.getId()).ifPresentOrElse(vendaCompleta -> {
+            List<br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda> itens = vendaCompleta.getItens();
+            if (itens != null) {
+                for (br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda item : itens) {
+                    if (item.getProduto() != null && item.getProduto().getId() != null) {
+                        produtoService.buscarPorId(item.getProduto().getId())
+                                .ifPresent(item::setProduto);
+                    }
+                }
+            }
+            historicoView.exibirDetalhesVenda(vendaCompleta.getId(), itens);
+        }, () -> historicoView.exibirDetalhesVenda(null, java.util.Collections.emptyList()));
+    }
+
     /**
      * Recalcula e atualiza o total parcial exibido no rodapé da view,
      * somando os subtotais de todos os itens na tabela do carrinho.
@@ -292,17 +365,6 @@ public class VendaController implements VendaObserver {
             }
         }
         caixaView.atualizarTotal(MOEDA_FORMATTER.format(total));
-    }
-
-    // ==========================================
-    // IMPLEMENTAÇÃO DO OBSERVER PATTERN
-    // ==========================================
-
-    @Override
-    public void onVendasChanged(List<Venda> vendas) {
-        // Atualiza a tabela de histórico de vendas quando o Service sinaliza
-        // alterações (após uma venda finalizada com sucesso)
-        vendaTableModel.setVendas(vendas);
     }
 
     /**
