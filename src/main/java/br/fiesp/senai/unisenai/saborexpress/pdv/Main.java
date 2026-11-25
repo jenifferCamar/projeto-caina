@@ -14,7 +14,6 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
-import br.fiesp.senai.unisenai.saborexpress.pdv.view.HistoricoVendasView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -51,6 +50,8 @@ import java.awt.event.WindowEvent;
  * <li><b>Data Loader (Database Seeding):</b> Executa carga inicial de dados
  * idempotente via {@link DataLoader} (padrão CommandLineRunner do Spring Boot).</li>
  * </ul>
+ *
+ * @author Cainã Antunes Silva
  */
 public class Main {
 
@@ -94,8 +95,7 @@ public class Main {
 
                 // Instanciação do Controlador de Caixa conectando View e Model (MVC)
                 CaixaView caixaView = mainFrame.getCaixaView();
-                HistoricoVendasView historicoView = mainFrame.getHistoricoView();
-                VendaController vendaController = new VendaController(mainFrame, caixaView, historicoView, service, vendaService);
+                VendaController vendaController = new VendaController(mainFrame, caixaView, service, vendaService);
                 vendaController.inicializar();
 
                 // Gerenciamento de encerramento de conexões
