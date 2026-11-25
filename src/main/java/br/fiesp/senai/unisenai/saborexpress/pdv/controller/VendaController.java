@@ -124,7 +124,8 @@ public class VendaController {
         for (int i = 0; i < rowCount; i++) {
             String nomeProduto = (String) caixaView.getTabelaCarrinho().getValueAt(i, 0);
             Integer quantidade = (Integer) caixaView.getTabelaCarrinho().getValueAt(i, 1);
-            BigDecimal precoUnitario = (BigDecimal) caixaView.getTabelaCarrinho().getValueAt(i, 2);
+            Object precoObj = caixaView.getTabelaCarrinho().getValueAt(i, 2);
+            BigDecimal precoUnitario = precoObj instanceof BigDecimal ? (BigDecimal) precoObj : new BigDecimal(precoObj.toString().replace("R$", "").replace(".", "").replace(",", ".").trim());
 
             Produto produto = produtoService.buscarPorNome(nomeProduto)
                     .stream().findFirst()
@@ -225,12 +226,13 @@ public class VendaController {
         BigDecimal total = BigDecimal.ZERO;
         int rowCount = caixaView.getTabelaCarrinho().getRowCount();
         for (int i = 0; i < rowCount; i++) {
-            BigDecimal subtotal = (BigDecimal) caixaView.getTabelaCarrinho().getValueAt(i, 3);
+            Object subtotalObj = caixaView.getTabelaCarrinho().getValueAt(i, 3);
+            BigDecimal subtotal = subtotalObj instanceof BigDecimal ? (BigDecimal) subtotalObj : new BigDecimal(subtotalObj.toString().replace("R$", "").replace(".", "").replace(",", ".").trim());
             if (subtotal != null) {
                 total = total.add(subtotal);
             }
         }
-        caixaView.atualizarTotal(MOEDA_FORMATTER.format(total));
+        caixaView.atualizarTotal(total);
     }
 
     public VendaTableModel getVendaTableModel() {
