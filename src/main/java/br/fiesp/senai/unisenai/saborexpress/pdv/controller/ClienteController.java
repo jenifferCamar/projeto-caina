@@ -42,8 +42,6 @@ public class ClienteController implements ClienteObserver {
         listView.getBtnEditar().addActionListener(e -> onEditarCliente());
         listView.getBtnExcluir().addActionListener(e -> onExcluirCliente());
         listView.getBtnRecarregar().addActionListener(e -> onRecarregarClientes());
-        listView.getBtnBuscar().addActionListener(e -> onBuscarClientes());
-        listView.getBtnLimparFiltro().addActionListener(e -> onLimparFiltro());
         formView.getBtnSalvar().addActionListener(e -> onSalvarCliente());
         formView.getBtnLimpar().addActionListener(e -> onLimparFormulario());
         formView.getBtnVoltar().addActionListener(e -> onVoltarParaListagem());
@@ -63,20 +61,6 @@ public class ClienteController implements ClienteObserver {
     }
 
     private void onRecarregarClientes() {
-        service.notificarObservadores();
-    }
-
-    private void onBuscarClientes() {
-        String termo = listView.getBuscaTexto();
-        if (termo == null || termo.isEmpty()) {
-            service.notificarObservadores();
-            return;
-        }
-        listView.atualizarTabela(service.buscarPorNome(termo));
-    }
-
-    private void onLimparFiltro() {
-        listView.limparBusca();
         service.notificarObservadores();
     }
 

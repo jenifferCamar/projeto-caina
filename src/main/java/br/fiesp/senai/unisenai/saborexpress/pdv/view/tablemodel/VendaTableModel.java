@@ -1,7 +1,6 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
 
 import javax.swing.table.AbstractTableModel;
 import java.math.BigDecimal;
@@ -23,15 +22,15 @@ import java.util.Locale;
  * <li>Ao estender {@link AbstractTableModel}, implementamos os métodos
  * fundamentais {@code getRowCount()}, {@code getColumnCount()} e
  * {@code getValueAt()}.</li>
- * <li><b>Padrão Observer:</b> Esta classe implementa {@link VendaObserver} para
- * ser notificada de forma reativa sempre que uma nova venda for finalizada com
- * sucesso no {@link VendaService}.</li>
  * <li>Notificação Reativa: Quando a lista interna de vendas é atualizada,
  * invocamos {@code fireTableDataChanged()}, notificando a JTable para que ela
  * repinte as linhas de forma atômica e eficiente na Event Dispatch Thread (EDT).</li>
+ * <li>Utilizado pela {@code VendaController} como observador de
+ * {@code VendaService} para manter o histórico de vendas sempre sincronizado
+ * após cada finalização.</li>
  * </ul>
  */
-public class VendaTableModel extends AbstractTableModel implements VendaObserver {
+public class VendaTableModel extends AbstractTableModel {
 
     private static final String[] COLUNAS = {
             "ID",
@@ -135,23 +134,5 @@ public class VendaTableModel extends AbstractTableModel implements VendaObserver
             case 4 -> venda.getStatus();
             default -> null;
         };
-    }
-
-    // ==========================================
-    // IMPLEMENTAÇÃO DO PADRÃO OBSERVER (VendaObserver)
-    // ==========================================
-
-    /**
-     * Notificação disparada pelo {@link VendaService} quando ocorre uma nova
-     * venda finalizada com sucesso. Recarrega a lista do banco de dados e
-     * atualiza a tabela de forma segura na Event Dispatch Thread (EDT).
-     *
-     * @param vendas Lista atualizada e sincronizada de todas as vendas registradas.
-     */
-    @Override
-    public void onVendasChanged(List<Venda> vendas) {
-        // Recarrega a lista do serviço (dados vindos do banco de dados)
-        // O despacho já ocorre dentro da EDT via SwingUtilities.invokeLater no serviço.
-        setVendas(vendas);
     }
 }

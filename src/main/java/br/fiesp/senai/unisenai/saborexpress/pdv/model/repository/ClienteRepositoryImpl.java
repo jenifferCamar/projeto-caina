@@ -112,18 +112,7 @@ public class ClienteRepositoryImpl implements ClienteRepository {
     }
 
     @Override
-    public List<Cliente> buscarPorTelefone(String telefone) {
-        if (telefone == null || telefone.trim().isEmpty()) return List.of();
-        EntityManager em = emf.createEntityManager();
-        try {
-            TypedQuery<Cliente> query = em.createQuery(
-                    "SELECT c FROM Cliente c WHERE c.telefone LIKE :tel ORDER BY c.nome ASC", Cliente.class);
-            query.setParameter("tel", "%" + telefone.trim() + "%");
-            return query.getResultList();
-        } finally {
-            if (em.isOpen()) em.close();
-        }
-    }
+    public List<Cliente> listarTodos() {
         EntityManager em = emf.createEntityManager();
         try {
             TypedQuery<Cliente> query = em.createNamedQuery("Cliente.listarTodos", Cliente.class);
