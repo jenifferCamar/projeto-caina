@@ -30,6 +30,9 @@ public class ClienteListView extends JPanel {
     private final JButton btnNovo;
     private final JButton btnEditar;
     private final JButton btnExcluir;
+    private final JTextField txtBusca;
+    private final JButton btnBuscar;
+    private final JButton btnLimparFiltro;
     private final JButton btnRecarregar;
 
     public ClienteListView() {
@@ -73,11 +76,20 @@ public class ClienteListView extends JPanel {
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         btnRecarregar = new JButton("Recarregar"); btnRecarregar.setPreferredSize(new Dimension(110, 35));
+
+        txtBusca = new JTextField(); txtBusca.setPreferredSize(new Dimension(180, 30));
+        btnBuscar = new JButton("Buscar"); btnBuscar.setPreferredSize(new Dimension(90, 35));
+        btnLimparFiltro = new JButton("Limpar Filtro"); btnLimparFiltro.setPreferredSize(new Dimension(110, 35));
         btnExcluir = new JButton("Excluir"); btnExcluir.setPreferredSize(new Dimension(110, 35));
         btnExcluir.setForeground(new Color(180, 40, 40));
         btnEditar = new JButton("Editar"); btnEditar.setPreferredSize(new Dimension(110, 35));
         btnNovo = new JButton("+ Novo Cliente"); btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                painelBotoes.add(btnRecarregar);
+        painelBotoes.add(txtBusca);
+        painelBotoes.add(btnBuscar);
+        painelBotoes.add(btnLimparFiltro);
+        painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
         painelBotoes.add(btnRecarregar); painelBotoes.add(btnExcluir); painelBotoes.add(btnEditar); painelBotoes.add(btnNovo);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
         add(painelRodape, BorderLayout.SOUTH);
@@ -101,4 +113,8 @@ public class ClienteListView extends JPanel {
     public JButton getBtnEditar() { return btnEditar; }
     public JButton getBtnExcluir() { return btnExcluir; }
     public JButton getBtnRecarregar() { return btnRecarregar; }
+    public String getBuscaTexto() { return txtBusca.getText().trim(); }
+    public JButton getBtnBuscar() { return btnBuscar; }
+    public JButton getBtnLimparFiltro() { return btnLimparFiltro; }
+    public void limparBusca() { txtBusca.setText(""); }
 }
