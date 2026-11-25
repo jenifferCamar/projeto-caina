@@ -1,6 +1,8 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
@@ -90,7 +92,7 @@ public class ProdutoController implements ProdutoObserver {
         listView.getBtnExcluir().addActionListener(e -> onExcluirProduto());
         listView.getBtnRecarregar().addActionListener(e -> onRecarregarProdutos());
         listView.getBtnBuscar().addActionListener(e -> onBuscarProdutos());
-        listView.getBtnLimparFiltro().addActionListener(e -> onLimparFiltro());
+        // filtro não disponível nesta versão da view
 
         // --- Eventos da Tela de Formulário ---
         formView.getBtnSalvar().addActionListener(e -> onSalvarProduto());
@@ -197,15 +199,14 @@ public class ProdutoController implements ProdutoObserver {
             try {
                 preco = new BigDecimal(precoStr);
             } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException("Preço inválido. Informe um valor numérico válido (ex.: 19.99).");
+                throw new BusinessException("Preço inválido. Informe um valor numérico válido (ex.: 19.99).");
             }
 
             Integer quantidadeEstoque;
             try {
                 quantidadeEstoque = Integer.parseInt(estoqueStr);
             } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException(
-                        "Quantidade em estoque inválida. Informe um número inteiro (ex.: 10).");
+                throw new BusinessException("Quantidade em estoque inválida. Informe um número inteiro (ex.: 10).");
             }
 
             Long id = formView.getProdutoIdAtual();
@@ -233,20 +234,26 @@ public class ProdutoController implements ProdutoObserver {
             // Retorna à tela de listagem
             mainFrame.mostrarLista();
 
-        } catch (IllegalArgumentException ex) {
-            // Erros de validação amigáveis ao usuário
+        } catch (BusinessException ex) {
             JOptionPane.showMessageDialog(
                     mainFrame,
                     ex.getMessage(),
                     "Validação de Dados",
                     JOptionPane.WARNING_MESSAGE);
-        } catch (Exception ex) {
-            // Erros inesperados de infraestrutura ou banco
+        } catch (PersistenceException ex) {
             JOptionPane.showMessageDialog(
                     mainFrame,
-                    "Falha na operação de persistência: " + ex.getMessage(),
-                    "Erro no Banco de Dados",
+                    "Não foi possível salvar os dados. Tente novamente.",
+                    "Erro de Persistência",
                     JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro de persistência ao salvar produto: " + ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    mainFrame,
+                    "Ocorreu um erro inesperado ao salvar o produto.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro inesperado ao salvar produto: " + ex.getMessage());
         }
     }
 

@@ -2,6 +2,8 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
@@ -117,7 +119,8 @@ public class VendaController implements VendaObserver {
         try {
             quantidade = Integer.parseInt(quantidadeTexto);
             if (quantidade <= 0) {
-                throw new IllegalArgumentException("A quantidade deve ser um número inteiro positivo.");
+                JOptionPane.showMessageDialog(mainFrame, "Quantidade inválida. Informe um número inteiro positivo (ex.: 2).", "Validação de Dados", JOptionPane.WARNING_MESSAGE);
+                return;
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(
@@ -213,8 +216,7 @@ public class VendaController implements VendaObserver {
             // Busca o produto pelo nome para obter o ID
             Produto produto = produtoService.buscarPorNome(nomeProduto)
                     .stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Produto não encontrado: " + nomeProduto));
+                    .orElseThrow(() -> new BusinessException("Produto não encontrado: " + nomeProduto));
 
             carrinho.add(new ItemCarrinho(
                     produto.getId(),
@@ -245,20 +247,14 @@ public class VendaController implements VendaObserver {
             atualizarTotalParcial();
             caixaView.getTxtCliente().setText("");
 
-        } catch (IllegalArgumentException ex) {
-            // Erros de validação amigáveis (estoque insuficiente, etc.)
-            JOptionPane.showMessageDialog(
-                    mainFrame,
-                    ex.getMessage(),
-                    "Validação de Venda",
-                    JOptionPane.WARNING_MESSAGE);
+        } catch (BusinessException ex) {
+            JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Validação de Venda", JOptionPane.WARNING_MESSAGE);
+        } catch (PersistenceException ex) {
+            JOptionPane.showMessageDialog(mainFrame, "Não foi possível concluir a venda. Tente novamente.", "Erro de Persistência", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro de persistência ao finalizar venda: " + ex.getMessage());
         } catch (Exception ex) {
-            // Erros inesperados de infraestrutura ou banco
-            JOptionPane.showMessageDialog(
-                    mainFrame,
-                    "Falha ao finalizar venda: " + ex.getMessage(),
-                    "Erro no Banco de Dados",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainFrame, "Ocorreu um erro inesperado ao finalizar a venda.", "Erro", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro inesperado ao finalizar venda: " + ex.getMessage());
         }
     }
 
@@ -291,7 +287,7 @@ public class VendaController implements VendaObserver {
                 total = total.add(subtotal);
             }
         }
-        caixaView.atualizarTotal(MOEDA_FORMATTER.format(total));
+        caixaView.atualizarTotal(total);
     }
 
     // ==========================================

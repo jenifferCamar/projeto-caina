@@ -4,6 +4,8 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.VendaRepository;
 
@@ -26,7 +28,7 @@ import java.util.Optional;
  * e seus {@link ItemVenda} de forma atômica via {@link VendaRepository}.</li>
  * <li><b>Validação de Estoque:</b> Antes de finalizar, verifica se cada produto
  * do carrinho possui quantidade suficiente em estoque, lançando
- * {@link IllegalArgumentException} com mensagem amigável caso contrário.</li>
+ * {@link BusinessException} ou {@link ValidationException} com mensagem amigável caso contrário.</li>
  * <li><b>Baixa de Estoque:</b> Decrementa o estoque de cada produto vendido e
  * persiste a alteração via {@link ProdutoService}, garantindo consistência
  * entre o cardápio e o histórico de vendas.</li>
@@ -122,26 +124,22 @@ public class VendaService {
      *                     venda sem cliente).
      * @param clienteNome  Nome opcional do cliente para exibição no histórico.
      * @return A {@link Venda} finalizada e persistida.
-     * @throws IllegalArgumentException se o carrinho estiver vazio, algum produto
-     *                                  não tiver estoque suficiente ou dados forem
-     *                                  inválidos.
+     * @throws ValidationException se dados forem inválidos.
+     * @throws BusinessException se houver regra de negócio violada.
      */
     public Venda finalizarVenda(List<ItemCarrinho> carrinho, Long clienteId, String clienteNome) {
         if (carrinho == null || carrinho.isEmpty()) {
-            throw new IllegalArgumentException("O carrinho está vazio. Adicione ao menos um item antes de finalizar.");
+            throw new ValidationException("O carrinho está vazio. Adicione ao menos um item antes de finalizar.");
         }
 
         // 1. Validação de estoque para cada item do carrinho
         for (ItemCarrinho itemCarrinho : carrinho) {
             Produto produto = produtoService.buscarPorId(itemCarrinho.getProdutoId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Produto não encontrado: ID #" + itemCarrinho.getProdutoId()));
+                    .orElseThrow(() -> new BusinessException("Produto não encontrado: " + itemCarrinho.getProdutoId()));
 
             Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
             if (estoqueAtual < itemCarrinho.getQuantidade()) {
-                throw new IllegalArgumentException(
-                        String.format("Estoque insuficiente para o produto '%s'. Disponível: %d, solicitado: %d.",
-                                produto.getNome(), estoqueAtual, itemCarrinho.getQuantidade()));
+                throw new BusinessException(String.format("Estoque insuficiente para '%s': disponível=%d, solicitado=%d.", produto.getNome(), estoqueAtual, itemCarrinho.getQuantidade()));
             }
         }
 

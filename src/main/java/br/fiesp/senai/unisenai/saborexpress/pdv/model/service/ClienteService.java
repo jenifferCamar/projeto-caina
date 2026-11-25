@@ -1,6 +1,7 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.service;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Cliente;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ClienteObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepository;
 
@@ -46,7 +47,7 @@ public class ClienteService {
                 try {
                     observer.onClientesChanged(Collections.unmodifiableList(listaAtualizada));
                 } catch (Exception e) {
-                    System.err.println("Erro ao notificar observador: " + e.getMessage());
+                    System.err.println("Erro ao notificar observador de clientes: " + e.getMessage());
                 }
             }
         });
@@ -61,7 +62,7 @@ public class ClienteService {
 
     public Cliente atualizar(Cliente cliente) {
         if (cliente.getId() == null) {
-            throw new IllegalArgumentException("O cliente deve possuir um ID para ser atualizado.");
+            throw new ValidationException("O cliente deve possuir um ID para ser atualizado.");
         }
         validarRegrasCliente(cliente);
         Cliente atualizado = repository.atualizar(cliente);
@@ -71,7 +72,7 @@ public class ClienteService {
 
     public void excluir(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("ID inválido para exclusão.");
+            throw new ValidationException("ID inválido para exclusão.");
         }
         repository.excluir(id);
         notificarObservadores();
@@ -91,10 +92,10 @@ public class ClienteService {
 
     private void validarRegrasCliente(Cliente cliente) {
         if (cliente == null) {
-            throw new IllegalArgumentException("Dados do cliente não podem ser nulos.");
+            throw new ValidationException("Dados do cliente não podem ser nulos.");
         }
         if (cliente.getNome() == null || cliente.getNome().trim().isEmpty()) {
-            throw new IllegalArgumentException("O Nome do Cliente é obrigatório.");
+            throw new ValidationException("O Nome do Cliente é obrigatório.");
         }
     }
 }

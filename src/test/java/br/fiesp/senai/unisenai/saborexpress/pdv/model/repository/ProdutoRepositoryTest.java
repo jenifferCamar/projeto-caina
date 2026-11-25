@@ -1,7 +1,8 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.junit.jupiter.api.AfterAll;
@@ -41,8 +42,24 @@ class ProdutoRepositoryTest {
     @BeforeEach
     void setUp() {
         repository = new ProdutoRepositoryImpl(emf);
-        categoria = new Categoria("Lanche", "Lanches e sanduíches artesanais");
-        categoria.setId(1L);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            categoria = em.createQuery("SELECT c FROM Categoria c WHERE LOWER(c.nome)=LOWER(:nome)", Categoria.class)
+                    .setParameter("nome", "Lanche")
+                    .getResultStream().findFirst().orElse(null);
+            if (categoria == null) {
+                categoria = new Categoria("Lanche", "Lanches e sanduíches artesanais");
+                categoria.setAtiva(true);
+                em.persist(categoria);
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
     }
 
     @Test
