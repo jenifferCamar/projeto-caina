@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -47,7 +46,6 @@ public class ProdutoListView extends JPanel {
     private final JButton btnNovo;
     private final JButton btnEditar;
     private final JButton btnExcluir;
-    private final JButton btnRecarregar;
     private final JTextField txtBusca;
     private final JButton btnBuscar;
     private final JButton btnLimparFiltro;
@@ -196,10 +194,6 @@ public class ProdutoListView extends JPanel {
 
     public JButton getBtnBuscar() {
         return btnBuscar;
-    }
-
-    public JButton getBtnLimparFiltro() {
-        return btnLimparFiltro;
     }
 
     public void limparBusca() {

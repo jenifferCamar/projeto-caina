@@ -2,69 +2,65 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JButton;
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.BorderLayout;
 
+/**
+ * Janela Principal da Aplicação Swing ({@link JFrame}).
+ * <p>
+ * <b>Conceito Pedagógico (Padrão CardLayout & Interface de Janela Única -
+ * SDI):</b>
+ * <ul>
+ * <li>Em vez de abrir múltiplas janelas flutuantes desordenadas (MDI ou
+ * múltiplos JFrames),
+ * o {@link CardLayout} gerencia diferentes "páginas" ou painéis de visão em uma
+ * única área
+ * de exibição como se fossem cartas empilhadas.</li>
+ * <li>A orquestração e a decisão de qual tela deve ser exibida é controlada
+ * pelo
+ * {@code ProdutoController}, garantindo a independência das visões entre
+ * si.</li>
+ * </ul>
+ *
+ * @author Cainã Antunes Silva
+ */
 public class MainFrame extends JFrame {
 
     public static final String TELA_LISTA = "CARD_LISTA";
     public static final String TELA_FORMULARIO = "CARD_FORMULARIO";
-    public static final String TELA_CLIENTE_LISTA = "CARD_CLIENTE_LISTA";
-    public static final String TELA_CLIENTE_FORMULARIO = "CARD_CLIENTE_FORMULARIO";
     public static final String TELA_CAIXA = "CARD_CAIXA";
-    public static final String TELA_HISTORICO = "CARD_HISTORICO";
 
     private final CardLayout cardLayout;
     private final JPanel painelPrincipal;
 
     private final ProdutoListView listView;
     private final ProdutoFormView formView;
+    private final CaixaView caixaView;
+
     private final ClienteListView clienteListView;
     private final ClienteFormView clienteFormView;
-    private final CaixaView caixaView;
-    private final HistoricoVendasView historicoView;
 
     public MainFrame() {
-        super("Sabor Express PDV - Gestão de Lanchonete");
+        super("PDV - Gestão de Produtos");
 
         this.cardLayout = new CardLayout();
         this.painelPrincipal = new JPanel(cardLayout);
 
         this.listView = new ProdutoListView();
         this.formView = new ProdutoFormView();
+        this.caixaView = new CaixaView();
+
         this.clienteListView = new ClienteListView();
         this.clienteFormView = new ClienteFormView();
-        this.caixaView = new CaixaView();
-        this.historicoView = new HistoricoVendasView();
 
+        // Adiciona as telas ao container gerenciado por CardLayout
         this.painelPrincipal.add(listView, TELA_LISTA);
         this.painelPrincipal.add(formView, TELA_FORMULARIO);
-        this.painelPrincipal.add(clienteListView, TELA_CLIENTE_LISTA);
-        this.painelPrincipal.add(clienteFormView, TELA_CLIENTE_FORMULARIO);
         this.painelPrincipal.add(caixaView, TELA_CAIXA);
-        this.painelPrincipal.add(historicoView, TELA_HISTORICO);
+        this.painelPrincipal.add(clienteListView, "CARD_CLIENTE_LISTA");
+        this.painelPrincipal.add(clienteFormView, "CARD_CLIENTE_FORMULARIO");
 
-        JPanel painelNav = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnCardapio = new JButton("Cardápio");
-        JButton btnClientes = new JButton("Clientes");
-        JButton btnCaixa = new JButton("Caixa");
-        JButton btnHistorico = new JButton("Histórico");
-        btnCardapio.addActionListener(e -> mostrarLista());
-        btnClientes.addActionListener(e -> mostrarListaCliente());
-        btnCaixa.addActionListener(e -> mostrarCaixa());
-        btnHistorico.addActionListener(e -> mostrarHistorico());
-        painelNav.add(btnCardapio);
-        painelNav.add(btnClientes);
-        painelNav.add(btnCaixa);
-        painelNav.add(btnHistorico);
-
-        JPanel container = new JPanel(new BorderLayout());
-        container.add(painelNav, BorderLayout.NORTH);
-        container.add(painelPrincipal, BorderLayout.CENTER);
-        setContentPane(container);
+        setContentPane(painelPrincipal);
 
         // Barra de menus superior para alternar facilmente entre os módulos
         javax.swing.JMenuBar menuBar = new javax.swing.JMenuBar();
@@ -76,38 +72,68 @@ public class MainFrame extends JFrame {
         javax.swing.JMenuItem itemProdutos = new javax.swing.JMenuItem("Gerenciamento de Produtos");
         itemProdutos.addActionListener(e -> mostrarLista());
 
-        javax.swing.JMenuItem itemHistorico = new javax.swing.JMenuItem("Histórico de Vendas");
-        itemHistorico.addActionListener(e -> mostrarHistorico());
-
         javax.swing.JMenuItem itemClientes = new javax.swing.JMenuItem("Gerenciamento de Clientes");
         itemClientes.addActionListener(e -> mostrarListaCliente());
 
         menuModulos.add(itemCaixa);
         menuModulos.add(itemProdutos);
-        menuModulos.add(itemHistorico);
         menuModulos.add(itemClientes);
         menuBar.add(menuModulos);
         setJMenuBar(menuBar);
-
         // Configurações da Janela
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(900, 650));
-        setPreferredSize(new Dimension(1000, 700));
+        setMinimumSize(new Dimension(850, 600));
+        setPreferredSize(new Dimension(950, 650));
         pack();
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(null); // Centraliza a janela na tela
     }
 
-    public void mostrarLista() { cardLayout.show(painelPrincipal, TELA_LISTA); }
-    public void mostrarFormulario() { cardLayout.show(painelPrincipal, TELA_FORMULARIO); }
-    public void mostrarListaCliente() { cardLayout.show(painelPrincipal, TELA_CLIENTE_LISTA); }
-    public void mostrarFormularioCliente() { cardLayout.show(painelPrincipal, TELA_CLIENTE_FORMULARIO); }
-    public void mostrarCaixa() { cardLayout.show(painelPrincipal, TELA_CAIXA); }
-    public void mostrarHistorico() { cardLayout.show(painelPrincipal, TELA_HISTORICO); }
+    /**
+     * Alterna a visualização para a tela de listagem de produtos.
+     */
+    public void mostrarLista() {
+        cardLayout.show(painelPrincipal, TELA_LISTA);
+    }
 
-    public ProdutoListView getListView() { return listView; }
-    public ProdutoFormView getFormView() { return formView; }
-    public ClienteListView getClienteListView() { return clienteListView; }
-    public ClienteFormView getClienteFormView() { return clienteFormView; }
-    public CaixaView getCaixaView() { return caixaView; }
-    public HistoricoVendasView getHistoricoView() { return historicoView; }
+    /**
+     * Alterna a visualização para a tela de formulário (cadastro/edição).
+     */
+    public void mostrarFormulario() {
+        cardLayout.show(painelPrincipal, TELA_FORMULARIO);
+    }
+
+    public void mostrarListaCliente() {
+        cardLayout.show(painelPrincipal, "CARD_CLIENTE_LISTA");
+    }
+
+    public void mostrarFormularioCliente() {
+        cardLayout.show(painelPrincipal, "CARD_CLIENTE_FORMULARIO");
+    }
+
+    public ClienteListView getClienteListView() {
+        return clienteListView;
+    }
+
+    public ClienteFormView getClienteFormView() {
+        return clienteFormView;
+    }
+
+    public ProdutoListView getListView() {
+        return listView;
+    }
+
+    public ProdutoFormView getFormView() {
+        return formView;
+    }
+
+    public CaixaView getCaixaView() {
+        return caixaView;
+    }
+
+    /**
+     * Alterna a visualização para a tela de Caixa (checkout de vendas).
+     */
+    public void mostrarCaixa() {
+        cardLayout.show(painelPrincipal, TELA_CAIXA);
+    }
 }
