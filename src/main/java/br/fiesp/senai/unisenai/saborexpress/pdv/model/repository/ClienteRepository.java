@@ -15,5 +15,6 @@ public interface ClienteRepository {
     void excluir(Long id);
     Optional<Cliente> buscarPorId(Long id);
     List<Cliente> buscarPorNome(String nome);
+    List<Cliente> buscarPorTelefone(String telefone);
     List<Cliente> listarTodos();
 }

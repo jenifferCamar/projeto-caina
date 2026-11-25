@@ -90,7 +90,7 @@ public class CaixaView extends JPanel {
         lblTitulo = new JLabel("Caixa - PDV");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
 
-        JLabel lblSubtitulo = new JLabel("Finalização de vendas de lanches do cardápio ativo.");
+        lblSubtitulo = new JLabel("Finalização de vendas de lanches do cardápio ativo.");
         lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblSubtitulo.setForeground(Color.GRAY);
 
