@@ -274,11 +274,11 @@ classDiagram
     Categoria "1" --> "0..*" Produto : classifica
     Venda "1" --> "1..*" ItemVenda : contém
     ItemVenda "*" --> "1" Produto : referencia
-    Venda ..> Cliente : clienteId/clienteNome
+    Venda ..> Cliente : referencia cliente
 
     VendaService --> VendaRepository : usa
     VendaService o--> VendaObserver : notifica
-    VendaService --> ProdutoObserver : notifica estoque/produtos
+    VendaService --> ProdutoObserver : notifica estoque
     VendaRepository --> Venda : persiste
     VendaRepository --> ItemVenda : cascade
 ```
