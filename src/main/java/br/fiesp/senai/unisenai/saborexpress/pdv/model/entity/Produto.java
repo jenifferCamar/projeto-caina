@@ -171,7 +171,7 @@ public class Produto implements Serializable {
      */
     @Deprecated
     public Produto(String codigoBarras, String nome, BigDecimal preco, Integer estoque) {
-        this(codigoBarras, nome, "", preco, null, estoque);
+        this(codigoBarras, nome, "", preco, null, estoque, 0);
     }
 
     /**
