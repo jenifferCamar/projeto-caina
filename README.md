@@ -64,165 +64,223 @@ A condução didática fundamenta-se na articulação entre o **Estudo de Caso N
 
 ## 5. Diagramas Arquiteturais (Mermaid)
 
-### 5.1. Visão Geral da Arquitetura em Camadas (MVC Puro)
+### 5.1. Visão Geral da Arquitetura em Camadas (Sabor Express PDV)
 
 ```mermaid
 graph TD
     subgraph UI_Layer ["Camada de Apresentação (View - Java Swing)"]
         MF["MainFrame (CardLayout)"]
-        LV["ProdutoListView (JTable)"]
-        FV["ProdutoFormView (Formulário)"]
-        TM["ProdutoTableModel (AbstractTableModel)"]
-        MF --> LV
-        MF --> FV
-        LV --> TM
+        PV["ProdutoList/FormView"]
+        CV["CaixaView / HistoricoVendasView"]
+        CLV["ClienteList/FormView"]
     end
 
     subgraph Controller_Layer ["Camada de Controle (Controller / Mediator)"]
         PC["ProdutoController"]
+        VC["VendaController"]
+        CC["ClienteController"]
     end
 
-    subgraph Model_Layer ["Camada de Modelo (Model / Domain / Service)"]
-        PS["ProdutoService (Subject / Business Rules)"]
-        PO["&lt;&lt;interface&gt;&gt;<br/>ProdutoObserver"]
-        PE["Produto (JPA Entity)"]
+    subgraph Model_Layer ["Camada de Modelo (Domain / Service / Observer)"]
+        PS["ProdutoService"]
+        VS["VendaService"]
+        CS["ClienteService"]
+        PO["ProdutoObserver"]
+        VO["VendaObserver"]
+        ENT["Entidades: Categoria, Produto, Cliente, Venda, ItemVenda"]
     end
 
-    subgraph Persistence_Layer ["Camada de Persistência (Repository / ORM)"]
-        PR["&lt;&lt;interface&gt;&gt;<br/>ProdutoRepository"]
-        PRI["ProdutoRepositoryImpl"]
-        JU["JPAUtil (EntityManagerFactory)"]
-        H2[("H2 Database (Embutido / Arquivo)")]
+    subgraph Persistence_Layer ["Camada de Persistência (Repository / JPA / H2)"]
+        REPO["Repositories (Produto/Cliente/Venda/Categoria)"]
+        JPA["JPAUtil / EntityManager"]
+        H2[("H2 Database")]
     end
 
-    %% Relações e Fluxos
-    LV -- "Eventos (Clicks)" --> PC
-    FV -- "Eventos (Clicks)" --> PC
-    PC -- "Manipula Navegação" --> MF
-    PC -- "Chama Operações" --> PS
-    PS -- "Validações &amp; Notificações" --> PR
-    PRI -. "Implementa" .-> PR
-    PS --> PRI
-    PS -- "Notifica onProdutosChanged()" --> PO
-    PC -. "Implementa" .-> PO
-    PO -. "Atualiza Dados" .-> TM
-    PRI --> JU
-    PRI --> PE
-    JU --> H2
+    PV -- eventos --> PC
+    CV -- eventos --> VC
+    CLV -- eventos --> CC
+    PC --> PS
+    VC --> VS
+    VC --> PS
+    CC --> CS
+    PS --> REPO
+    VS --> REPO
+    CS --> REPO
+    PS -- notifica --> PO
+    VS -- notifica --> VO
+    PO -- atualiza UI --> PV
+    VO -- atualiza UI --> CV
+    REPO --> JPA --> H2
+    REPO --> ENT
 ```
 
 ---
 
-### 5.2. Diagrama de Sequência: Fluxo "Salvar Produto"
+### 5.2. Diagrama de Sequência: Fluxo de Venda (Sabor Express PDV)
 
-O diagrama a seguir detalha o ciclo de vida completo do cadastro de um produto, desde a interação do usuário na interface gráfica até a persistência no banco e a atualização reativa da tabela:
+O diagrama detalha a finalização de venda no caixa, incluindo validação, transação atômica com baixa de estoque, rollback em falha e notificação reativa da UI (Observer). Também contempla o cancelamento de venda finalizada com estorno de estoque (Card 17, validado).
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Usuario as Operador
-    participant Form as ProdutoFormView
-    participant List as ProdutoListView (TableModel)
-    participant Ctrl as ProdutoController
-    participant Svc as ProdutoService
-    participant Repo as ProdutoRepositoryImpl
+    actor Operador
+    participant Caixa as CaixaView
+    participant Ctrl as VendaController
+    participant VSvc as VendaService
+    participant PSvc as ProdutoService
+    participant VRepo as VendaRepositoryImpl
     participant JPA as EntityManager (H2)
+    participant Obs as VendaObserver / UI
 
-    Usuario->>Form: Clica em 'Salvar Produto'
-    Form->>Ctrl: Dispara ActionListener (btnSalvar)
-    Ctrl->>Form: Coleta dados (código de barras, nome, preço, estoque)
-    Form-->>Ctrl: Devolve os dados solicitados
-    Ctrl->>Ctrl: Valida conversão numérica (BigDecimal e Integer)
-    
-    Ctrl->>Svc: salvar(novoProduto)
-    Note over Svc: Valida Regras de Negócio<br/>- Campos não vazios<br/>- Preço positivo (> 0)<br/>- Estoque não negativo (>= 0)<br/>- Unicidade do código de barras
-    
-    Svc->>Repo: salvar(produto)
-    Repo->>JPA: em.getTransaction().begin()
-    Repo->>JPA: em.persist(produto)
-    Repo->>JPA: em.getTransaction().commit()
-    JPA-->>Repo: Produto com ID gerado (Identity)
-    Repo-->>Svc: Retorna produto persistido
-    
-    Note over Svc: Padrão Observer Disparado<br/>(Thread-Safe via SwingUtilities.invokeLater)
-    Svc->>Ctrl: onProdutosChanged(listaAtualizada)
-    Ctrl->>List: atualizarTabela(listaAtualizada)
-    Ctrl->>Form: Exibe mensagem de confirmação
-    Ctrl->>List: Alterna CardLayout para tela de Listagem
-    List-->>Usuario: JTable repintada e atualizada na tela
+    Operador->>Caixa: Clica em "Finalizar Venda"
+    Caixa->>Ctrl: ActionListener (btnFinalizar)
+    Ctrl->>Ctrl: Valida carrinho não vazio e monta itens
+    Ctrl->>VSvc: finalizarVenda(carrinho, clienteId, clienteNome)
+
+    Note over VSvc: Validação de negócio<br/>- Carrinho não vazio<br/>- Produto existente/ativo<br/>- Estoque suficiente
+
+    VSvc->>VRepo: finalizarVenda(venda)
+    VRepo->>JPA: begin()
+    loop Para cada ItemVenda
+        VRepo->>JPA: find(Produto)
+        VRepo->>VRepo: valida quantidade > 0 e estoque suficiente
+        VRepo->>JPA: merge(produto com estoque decrementado)
+    end
+    VRepo->>JPA: persist(venda + itens)
+    alt Sucesso
+        VRepo->>JPA: commit()
+        JPA-->>VRepo: Venda persistida
+        VRepo-->>VSvc: Venda finalizada
+        VSvc->>Obs: notificarObservadores() via SwingUtilities.invokeLater
+        Obs-->>Caixa: atualiza histórico/tabelas (Observer)
+        VSvc-->>Ctrl: Venda
+        Ctrl->>Caixa: mensagem de sucesso e limpa carrinho
+    else Falha de validação/persistência
+        VRepo->>JPA: rollback()
+        VRepo-->>VSvc: BusinessException/ValidationException/PersistenceException
+        VSvc-->>Ctrl: exceção
+        Ctrl->>Caixa: JOptionPane amigável (sem estado parcial)
+    end
+
+    Note over Operador,Obs: Cancelamento de venda finalizada (estorno)
+
+    Operador->>Caixa: Seleciona venda e clica "Cancelar Venda"
+    Caixa->>Ctrl: ActionListener (cancelar)
+    Ctrl->>VSvc: cancelarVenda(id)
+    VSvc->>VRepo: cancelarVenda(id)
+    VRepo->>JPA: begin()
+    VRepo->>JPA: find(Venda)
+    VRepo->>VRepo: valida FINALIZADA e não CANCELADA
+    loop Para cada ItemVenda
+        VRepo->>JPA: find(Produto)
+        VRepo->>JPA: merge(produto com estoque estornado)
+    end
+    VRepo->>JPA: merge(venda STATUS_CANCELADA)
+    alt Sucesso
+        VRepo->>JPA: commit()
+        VRepo-->>VSvc: Venda cancelada
+        VSvc->>Obs: notifica VendaObserver e ProdutoObserver
+        Obs-->>Caixa: atualiza histórico e catálogo
+    else Falha
+        VRepo->>JPA: rollback()
+        VRepo-->>VSvc: exceção de domínio/persistência
+        Ctrl->>Caixa: mensagem amigável
+    end
 ```
 
 ---
 
-### 5.3. Diagrama de Classes: Padrões Repository & Observer
+### 5.3. Diagrama de Classes: Domínio e Padrões (Sabor Express PDV)
+
+O diagrama reflete as entidades reais do domínio e os padrões Repository/Observer usados pelo Sabor Express PDV.
 
 ```mermaid
 classDiagram
+    direction LR
+
+    class Categoria {
+        -Long id
+        -String nome
+        -String descricao
+        -Boolean ativa
+    }
+
     class Produto {
         -Long id
         -String codigoBarras
         -String nome
+        -String descricao
         -BigDecimal preco
-        -Integer quantidadeEstoque
-        +getId() Long
-        +getCodigoBarras() String
-        +getNome() String
-        +getPreco() BigDecimal
-        +getQuantidadeEstoque() Integer
+        -Boolean ativo
+        -Integer estoque
+    }
+
+    class Cliente {
+        -Long id
+        -String nome
+        -String telefone
+        -String observacoes
+    }
+
+    class Venda {
+        -Long id
+        -LocalDateTime dataHora
+        -Long clienteId
+        -String clienteNome
+        -String formaPagamento
+        -String status
+        -BigDecimal total
+        +adicionarItem(ItemVenda)
+        +recalcularTotal()
+    }
+
+    class ItemVenda {
+        -Long id
+        -Integer quantidade
+        -BigDecimal precoUnitario
+        -BigDecimal subtotal
+    }
+
+    class VendaRepository {
+        <<interface>>
+        +salvar(Venda) Venda
+        +atualizar(Venda) Venda
+        +finalizarVenda(Venda) Venda
+        +cancelarVenda(Long) Venda
+        +buscarPorId(Long) Optional~Venda~
+        +listarTodos() List~Venda~
+    }
+
+    class VendaService {
+        -VendaRepository vendaRepository
+        -ProdutoService produtoService
+        -List~VendaObserver~ observers
+        +finalizarVenda(List~ItemCarrinho~, Long, String) Venda
+        +cancelarVenda(Long) Venda
+        +addObserver(VendaObserver) void
+        +notificarObservadores() void
+    }
+
+    class VendaObserver {
+        <<interface>>
+        +onVendasChanged(List~Venda~) void
     }
 
     class ProdutoObserver {
         <<interface>>
-        +onProdutosChanged(List~Produto~ produtos) void
+        +onProdutosChanged(List~Produto~) void
     }
 
-    class ProdutoRepository {
-        <<interface>>
-        +salvar(Produto p) Produto
-        +atualizar(Produto p) Produto
-        +excluir(Long id) void
-        +buscarPorId(Long id) Optional~Produto~
-        +buscarPorCodigoBarras(String cod) Optional~Produto~
-        +listarTodos() List~Produto~
-    }
+    Categoria "1" --> "0..*" Produto : classifica
+    Venda "1" --> "1..*" ItemVenda : contém
+    ItemVenda "*" --> "1" Produto : referencia
+    Venda ..> Cliente : clienteId/clienteNome
 
-    class ProdutoRepositoryImpl {
-        -EntityManagerFactory emf
-        +salvar(Produto p) Produto
-        +atualizar(Produto p) Produto
-        +excluir(Long id) void
-        +buscarPorId(Long id) Optional~Produto~
-        +buscarPorCodigoBarras(String cod) Optional~Produto~
-        +listarTodos() List~Produto~
-    }
-
-    class ProdutoService {
-        -ProdutoRepository repository
-        -List~ProdutoObserver~ observers
-        +addObserver(ProdutoObserver o) void
-        +removeObserver(ProdutoObserver o) void
-        +notificarObservadores() void
-        +salvar(Produto p) Produto
-        +atualizar(Produto p) Produto
-        +excluir(Long id) void
-        +listarTodos() List~Produto~
-    }
-
-    class ProdutoController {
-        -MainFrame mainFrame
-        -ProdutoListView listView
-        -ProdutoFormView formView
-        -ProdutoService service
-        +inicializar() void
-        +onProdutosChanged(List~Produto~ produtos) void
-    }
-
-    ProdutoRepository <|.. ProdutoRepositoryImpl : implementa
-    ProdutoObserver <|.. ProdutoController : implementa
-    ProdutoService o--> ProdutoObserver : notifica (1..*)
-    ProdutoService --> ProdutoRepository : utiliza (DIP)
-    ProdutoController --> ProdutoService : orquestra
-    ProdutoRepositoryImpl --> Produto : gerencia
+    VendaService --> VendaRepository : usa
+    VendaService o--> VendaObserver : notifica
+    VendaService --> ProdutoObserver : notifica estoque/produtos
+    VendaRepository --> Venda : persiste
+    VendaRepository --> ItemVenda : cascade
 ```
 
 ---
