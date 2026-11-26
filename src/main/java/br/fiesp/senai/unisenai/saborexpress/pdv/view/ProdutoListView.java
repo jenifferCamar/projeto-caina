@@ -130,11 +130,15 @@ public class ProdutoListView extends JPanel {
 
         // 3. Rodapé com Ações e Contador de Registros
         JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
+        painelRodape.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+        JPanel         painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         lblTotalRegistros = new JLabel("Total: 0 produto(s)");
         lblTotalRegistros.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        painelRodape.add(lblTotalRegistros, BorderLayout.WEST);
+        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        lblTotalRegistros.setPreferredSize(new Dimension(200, 25));
+        painelContador.add(lblTotalRegistros);
+        painelRodape.add(painelContador, BorderLayout.WEST);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
 
@@ -180,7 +184,7 @@ public class ProdutoListView extends JPanel {
     public void atualizarTabela(List<Produto> produtos) {
         tableModel.setProdutos(produtos);
         int total = (produtos != null) ? produtos.size() : 0;
-        lblTotalRegistros.setText(String.format("Total: %d produto(s) cadastrado(s)", total));
+        lblTotalRegistros.setText(String.format("Total: %d produto(s)", total));
     }
 
     /**
