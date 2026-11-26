@@ -145,12 +145,12 @@ public class CaixaView extends JPanel {
         JLabel lblQtd = new JLabel("Quantidade:");
         lblQtd.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         NumberFormat formatoInteiro = NumberFormat.getIntegerInstance();
-        formatoInteiro.setMinimumIntegerDigits(1);
         NumberFormatter formatterQtd = new NumberFormatter(formatoInteiro);
         formatterQtd.setValueClass(Integer.class);
-        formatterQtd.setAllowsInvalid(false);
+        formatterQtd.setAllowsInvalid(true);
         formatterQtd.setMinimum(1);
         txtQuantidade = new JFormattedTextField(formatterQtd);
+        txtQuantidade.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         txtQuantidade.setValue(1);
         txtQuantidade.setPreferredSize(new Dimension(60, 30));
         btnAdicionarCarrinho = new JButton("Adicionar ao Carrinho");
