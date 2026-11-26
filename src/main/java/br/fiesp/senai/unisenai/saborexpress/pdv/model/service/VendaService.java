@@ -5,6 +5,7 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.EstoqueInsuficienteException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.VendaRepository;
