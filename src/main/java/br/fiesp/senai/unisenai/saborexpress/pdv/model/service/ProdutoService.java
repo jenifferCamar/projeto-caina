@@ -401,6 +401,14 @@ public class ProdutoService {
         if (produto.getEstoque() < 0) {
             throw new ValidationException("A Quantidade em Estoque não pode ser negativa.");
         }
+
+        if (produto.getEstoqueMinimo() == null) {
+            produto.setEstoqueMinimo(0);
+        }
+
+        if (produto.getEstoqueMinimo() < 0) {
+            throw new ValidationException("O Estoque Mínimo não pode ser negativo.");
+        }
     }
 
     /**
