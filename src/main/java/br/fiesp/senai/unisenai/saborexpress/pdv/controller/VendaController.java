@@ -2,14 +2,16 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ProdutoInativoException;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.DashboardView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.HistoricoVendasView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel.VendaTableModel;
@@ -77,6 +79,10 @@ public class VendaController implements ProdutoObserver {
         // Registra o VendaTableModel da view como observador do VendaService
         // para atualização reativa do histórico após cada venda finalizada
         this.vendaService.addObserver(this.vendaTableModel);
+
+        // Registra o DashboardView como observador do VendaService
+        // para atualização reativa dos indicadores após cada venda/cancelamento
+        this.vendaService.addObserver(this.mainFrame.getDashboardView());
 
         // Registra o Controller como observador de Produtos para atualizar o caixa reativamente
         this.produtoService.addObserver(this);

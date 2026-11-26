@@ -86,7 +86,7 @@ public class Main {
                 }
 
                 // Instanciação da Janela Principal (View com CardLayout)
-                MainFrame mainFrame = new MainFrame();
+                MainFrame mainFrame = new MainFrame(vendaService);
 
                 // Instanciação do Controlador conectando View e Model (MVC)
                 ProdutoController controller = new ProdutoController(mainFrame, service);
