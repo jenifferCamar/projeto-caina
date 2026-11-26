@@ -13,8 +13,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -82,12 +84,45 @@ public class ProdutoListView extends JPanel {
         tabelaProdutos.getTableHeader().setReorderingAllowed(false);
 
         // Ajuste didático de largura das colunas
-        tabelaProdutos.getColumnModel().getColumn(0).setPreferredWidth(60); // ID
-        tabelaProdutos.getColumnModel().getColumn(1).setPreferredWidth(140); // Código de Barras
-        tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(280); // Nome
-        tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(120); // Preço
-        tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(100); // Quantidade
-        tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(90);  // Status
+        tabelaProdutos.getColumnModel().getColumn(0).setPreferredWidth(50); // ID
+        tabelaProdutos.getColumnModel().getColumn(1).setPreferredWidth(120); // Código de Barras
+        tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(240); // Nome
+        tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(100); // Preço
+        tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(80);  // Qtd. Estoque
+        tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(80);  // Estoque Mínimo
+        tabelaProdutos.getColumnModel().getColumn(6).setPreferredWidth(70);  // Status
+        tabelaProdutos.getColumnModel().getColumn(7).setPreferredWidth(80);  // Alerta Estoque
+
+        // Renderer customizado para destacar visualmente estoque zerado ou baixo
+        tabelaProdutos.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            private static final Color COR_ZERADO = new Color(180, 40, 40); // vermelho escuro
+            private static final Color COR_BAIXO = new Color(210, 130, 0);  // laranja
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                if (!isSelected) {
+                    Produto produto = tableModel.getProdutoAt(row);
+                    if (produto != null) {
+                        if (produto.isEstoqueZerado()) {
+                            c.setForeground(COR_ZERADO);
+                            c.setFont(c.getFont().deriveFont(Font.BOLD));
+                        } else if (produto.isEstoqueBaixo()) {
+                            c.setForeground(COR_BAIXO);
+                        } else {
+                            c.setForeground(Color.BLACK);
+                        }
+                    } else {
+                        c.setForeground(Color.BLACK);
+                    }
+                }
+
+                return c;
+            }
+        });
 
         JScrollPane scrollPane = new JScrollPane(tabelaProdutos);
         scrollPane.setBorder(BorderFactory.createTitledBorder(" Produtos Cadastrados "));
