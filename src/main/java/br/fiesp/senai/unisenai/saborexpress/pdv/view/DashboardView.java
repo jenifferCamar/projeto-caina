@@ -8,8 +8,10 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,6 +20,11 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,6 +41,8 @@ import java.util.Locale;
  * <li>Não acessa repositórios nem banco de dados diretamente: recebe os dados
  * já calculados pelo {@link VendaService} via injeção de dependência no
  * construtor.</li>
+ * <li>Suporta filtros de período (data início e fim) para consultar métricas
+ * em intervalos específicos.</li>
  * <li>Toda atualização da interface ocorre na Event Dispatch Thread (EDT) do
  * Swing, garantida pelo despacho já realizado no serviço.</li>
  * </ul>
@@ -45,6 +54,9 @@ public class DashboardView extends JPanel implements VendaObserver {
     private static final NumberFormat MOEDA_FORMATTER = NumberFormat
             .getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
 
+    private static final DateTimeFormatter DATA_FORMATTER = DateTimeFormatter
+            .ofPattern("dd/MM/yyyy");
+
     private final VendaService vendaService;
 
     private final JLabel lblTitulo;
@@ -54,6 +66,12 @@ public class DashboardView extends JPanel implements VendaObserver {
     private final JLabel lblQuantidadeVendas;
     private final JLabel lblFaturamentoTotal;
     private final JLabel lblTicketMedio;
+
+    // --- Filtros de período ---
+    private final JTextField txtDataInicio;
+    private final JTextField txtDataFim;
+    private final JButton btnAplicarFiltro;
+    private final JButton btnLimparFiltro;
 
     /**
      * Construtor recebendo o serviço de vendas para cálculo de métricas.
@@ -85,7 +103,42 @@ public class DashboardView extends JPanel implements VendaObserver {
         add(painelCabecalho, BorderLayout.NORTH);
 
         // ==========================================
-        // 2. CARDS DE MÉTRICAS
+        // 2. PAINEL DE FILTROS DE PERÍODO
+        // ==========================================
+        JPanel painelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        painelFiltros.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(" Filtrar por Período "),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+
+        JLabel lblInicio = new JLabel("Data Início:");
+        lblInicio.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtDataInicio = new JTextField(10);
+        txtDataInicio.setToolTipText("Formato: dd/MM/yyyy");
+
+        JLabel lblFim = new JLabel("Data Fim:");
+        lblFim.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtDataFim = new JTextField(10);
+        txtDataFim.setToolTipText("Formato: dd/MM/yyyy");
+
+        btnAplicarFiltro = new JButton("Aplicar Filtro");
+        btnAplicarFiltro.setPreferredSize(new Dimension(110, 30));
+        btnAplicarFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        btnLimparFiltro = new JButton("Limpar Filtro");
+        btnLimparFiltro.setPreferredSize(new Dimension(110, 30));
+        btnLimparFiltro.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        painelFiltros.add(lblInicio);
+        painelFiltros.add(txtDataInicio);
+        painelFiltros.add(lblFim);
+        painelFiltros.add(txtDataFim);
+        painelFiltros.add(btnAplicarFiltro);
+        painelFiltros.add(btnLimparFiltro);
+
+        add(painelFiltros, BorderLayout.NORTH);
+
+        // ==========================================
+        // 3. CARDS DE MÉTRICAS
         // ==========================================
         JPanel painelCards = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
         painelCards.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
@@ -101,7 +154,7 @@ public class DashboardView extends JPanel implements VendaObserver {
         add(painelCards, BorderLayout.CENTER);
 
         // ==========================================
-        // 3. RODAPÉ
+        // 4. RODAPÉ
         // ==========================================
         JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
         painelRodape.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
@@ -112,6 +165,12 @@ public class DashboardView extends JPanel implements VendaObserver {
         painelRodape.add(lblRodape, BorderLayout.WEST);
 
         add(painelRodape, BorderLayout.SOUTH);
+
+        // ==========================================
+        // 5. OUVINTES DOS FILTROS
+        // ==========================================
+        btnAplicarFiltro.addActionListener(e -> aplicarFiltroPeriodo());
+        btnLimparFiltro.addActionListener(e -> limparFiltro());
 
         // Inicializa com valores zerados
         atualizarMetricas();
@@ -150,12 +209,21 @@ public class DashboardView extends JPanel implements VendaObserver {
     }
 
     /**
-     * Solicita as métricas atualizadas ao serviço e repinta os cards.
-     * Chamada durante a inicialização e pelo padrão Observer.
+     * Solicita as métricas atualizadas ao serviço (sem filtro de período) e
+     * repinta os cards.
      */
-    public void atualizarMetricas() {
+    private void atualizarMetricas() {
         MetricasVendasDTO metricas = vendaService.calcularMetricas();
+        aplicarMetricas(metricas);
+    }
 
+    /**
+     * Aplica as métricas recebidas aos cards da interface.
+     *
+     * @param metricas DTO com as métricas calculadas (não pode ser nulo; campos
+     *                 numéricos são tratados como {@code ZERO} se nulos).
+     */
+    private void aplicarMetricas(MetricasVendasDTO metricas) {
         Long quantidade = metricas.getQuantidadeVendas();
         BigDecimal faturamento = metricas.getFaturamentoTotal();
         BigDecimal ticketMedio = metricas.getTicketMedio();
@@ -165,6 +233,58 @@ public class DashboardView extends JPanel implements VendaObserver {
                 faturamento != null ? faturamento : BigDecimal.ZERO));
         lblTicketMedio.setText(MOEDA_FORMATTER.format(
                 ticketMedio != null ? ticketMedio : BigDecimal.ZERO));
+    }
+
+    /**
+     * Lê os campos de data início e fim, converte para {@link LocalDateTime}
+     * e solicita métricas filtradas ao serviço.
+     */
+    private void aplicarFiltroPeriodo() {
+        LocalDateTime inicio = null;
+        LocalDateTime fim = null;
+
+        String textoInicio = txtDataInicio.getText().trim();
+        String textoFim = txtDataFim.getText().trim();
+
+        if (!textoInicio.isEmpty()) {
+            try {
+                LocalDate dataInicio = LocalDate.parse(textoInicio, DATA_FORMATTER);
+                inicio = dataInicio.atStartOfDay();
+            } catch (DateTimeParseException ex) {
+                javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "Data de início inválida. Use o formato dd/MM/yyyy.",
+                        "Erro de Filtro",
+                        javax.swing.JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        if (!textoFim.isEmpty()) {
+            try {
+                LocalDate dataFim = LocalDate.parse(textoFim, DATA_FORMATTER);
+                fim = dataFim.atTime(LocalTime.MAX);
+            } catch (DateTimeParseException ex) {
+                javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "Data de fim inválida. Use o formato dd/MM/yyyy.",
+                        "Erro de Filtro",
+                        javax.swing.JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        MetricasVendasDTO metricas = vendaService.calcularMetricas(inicio, fim);
+        aplicarMetricas(metricas);
+    }
+
+    /**
+     * Limpa os campos de filtro e recarrega as métricas sem período.
+     */
+    private void limparFiltro() {
+        txtDataInicio.setText("");
+        txtDataFim.setText("");
+        atualizarMetricas();
     }
 
     // ==========================================
