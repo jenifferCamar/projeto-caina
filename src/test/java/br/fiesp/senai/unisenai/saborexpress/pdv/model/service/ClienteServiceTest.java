@@ -3,6 +3,7 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.service;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Cliente;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepositoryImpl;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.junit.jupiter.api.AfterAll;
@@ -44,13 +45,13 @@ class ClienteServiceTest {
     @DisplayName("Deve rejeitar cliente sem nome")
     void deveRejeitarSemNome() {
         Cliente c = new Cliente("", "(11) 90000-0000", null);
-        assertThrows(IllegalArgumentException.class, () -> service.salvar(c));
+        assertThrows(ValidationException.class, () -> service.salvar(c));
     }
 
     @Test
     @DisplayName("Deve rejeitar cliente nulo")
     void deveRejeitarNulo() {
-        assertThrows(IllegalArgumentException.class, () -> service.salvar(null));
+        assertThrows(ValidationException.class, () -> service.salvar(null));
     }
 
     @Test
