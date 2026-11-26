@@ -85,21 +85,12 @@ public class Main {
                     }
                 }
 
-                // Instanciação da Janela Principal (View com CardLayout)
-                MainFrame mainFrame = new MainFrame(vendaService);
-
-                // Instanciação do Controlador conectando View e Model (MVC)
-                ProdutoController controller = new ProdutoController(mainFrame, service);
-                controller.inicializar();
-
-                // Instanciação do Controlador de Clientes
-                ClienteRepository clienteRepository = new ClienteRepositoryImpl();
-                ClienteController clienteController = new ClienteController(mainFrame, clienteRepository);
-                clienteController.inicializar();
-
                 // Instanciação dos repositórios e serviços de Venda
                 VendaRepository vendaRepository = new VendaRepositoryImpl();
                 VendaService vendaService = new VendaService(vendaRepository, service);
+
+                // Instanciação da Janela Principal (View com CardLayout)
+                MainFrame mainFrame = new MainFrame(vendaService);
 
                 // Instanciação do Controlador de Caixa conectando View e Model (MVC)
                 CaixaView caixaView = mainFrame.getCaixaView();
