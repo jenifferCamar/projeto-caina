@@ -164,7 +164,8 @@ public class VendaService {
             venda.adicionarItem(itemVenda);
 
             // Aplica baixa de estoque
-            Integer novoEstoque = produto.getEstoque() - itemCarrinho.getQuantidade();
+            Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
+            Integer novoEstoque = estoqueAtual - itemCarrinho.getQuantidade();
             produto.setEstoque(novoEstoque);
             produtoService.atualizar(produto);
         }
