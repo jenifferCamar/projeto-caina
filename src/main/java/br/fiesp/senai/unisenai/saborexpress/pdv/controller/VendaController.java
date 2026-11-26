@@ -118,6 +118,7 @@ public class VendaController implements ProdutoObserver {
 
         // --- Eventos do Histórico ---
         historicoView.getBtnAtualizar().addActionListener(e -> onAtualizarHistorico());
+        historicoView.getBtnCancelarVenda().addActionListener(e -> onCancelarVendaHistorico());
         historicoView.getTabelaVendas().getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 onVendaSelecionadaNoHistorico();
