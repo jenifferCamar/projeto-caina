@@ -3,6 +3,9 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -36,8 +39,11 @@ public class VendaRepositoryImpl implements VendaRepository {
             tx.commit();
             return venda;
         } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao persistir venda: " + e.getMessage(), e);
+            if (tx.isActive()) {
+                tx.rollback(); // desfaz em caso de falha (sem estado parcial)
+            }
+            throw new PersistenceException("Falha ao persistir venda.", e);
+
         } finally {
             if (em.isOpen()) em.close();
         }
@@ -47,7 +53,7 @@ public class VendaRepositoryImpl implements VendaRepository {
     public Venda atualizar(Venda venda) {
         Objects.requireNonNull(venda, "Venda nao pode ser nula.");
         if (venda.getId() == null) {
-            throw new IllegalArgumentException("Venda a ser atualizada deve possuir um ID.");
+            throw new ValidationException("Venda a ser atualizada deve possuir um ID.");
         }
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -57,8 +63,11 @@ public class VendaRepositoryImpl implements VendaRepository {
             tx.commit();
             return mesclada;
         } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao atualizar venda: " + e.getMessage(), e);
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw new PersistenceException("Falha ao atualizar venda.", e);
+
         } finally {
             if (em.isOpen()) em.close();
         }
@@ -73,13 +82,16 @@ public class VendaRepositoryImpl implements VendaRepository {
             tx.begin();
             Venda venda = em.find(Venda.class, id);
             if (venda == null) {
-                throw new IllegalArgumentException("Venda nao encontrada para o ID: " + id);
+                throw new BusinessException("Venda não encontrada para o ID: " + id);
             }
             em.remove(venda);
             tx.commit();
         } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao excluir venda ID " + id + ": " + e.getMessage(), e);
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw new PersistenceException("Falha ao excluir venda.", e);
+
         } finally {
             if (em.isOpen()) em.close();
         }
@@ -115,7 +127,7 @@ public class VendaRepositoryImpl implements VendaRepository {
     public Venda finalizarVenda(Venda venda) {
         Objects.requireNonNull(venda, "Venda nao pode ser nula.");
         if (venda.getItens() == null || venda.getItens().isEmpty()) {
-            throw new IllegalArgumentException("A venda deve conter ao menos um item.");
+            throw new ValidationException("A venda deve conter ao menos um item.");
         }
 
         EntityManager em = emf.createEntityManager();
@@ -126,15 +138,17 @@ public class VendaRepositoryImpl implements VendaRepository {
             for (ItemVenda item : venda.getItens()) {
                 Produto produto = em.find(Produto.class, item.getProduto().getId());
                 if (produto == null) {
-                    throw new IllegalArgumentException("Produto nao encontrado: " + item.getProduto().getId());
+                    throw new BusinessException("Produto não encontrado: " + item.getProduto().getId());
+
                 }
                 int estoqueAtual = produto.getQuantidadeEstoque();
                 int quantidadeVendida = item.getQuantidade();
                 if (quantidadeVendida <= 0) {
-                    throw new IllegalArgumentException("Quantidade deve ser maior que zero para o produto: " + produto.getNome());
+                    throw new ValidationException("Quantidade deve ser maior que zero para o produto: " + produto.getNome());
                 }
                 if (estoqueAtual < quantidadeVendida) {
-                    throw new IllegalStateException("Estoque insuficiente para '" + produto.getNome() + "': disponivel=" + estoqueAtual + ", solicitado=" + quantidadeVendida);
+                    throw new BusinessException("Estoque insuficiente para '" + produto.getNome() + "': disponível=" + estoqueAtual + ", solicitado=" + quantidadeVendida);
+
                 }
                 produto.setQuantidadeEstoque(estoqueAtual - quantidadeVendida);
                 em.merge(produto);
@@ -142,8 +156,11 @@ public class VendaRepositoryImpl implements VendaRepository {
             tx.commit();
             return venda;
         } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao finalizar venda: " + e.getMessage(), e);
+            if (tx.isActive()) {
+                tx.rollback(); // desfaz tudo em caso de falha (sem estado parcial)
+            }
+            throw new PersistenceException("Falha ao finalizar venda.", e);
+
         } finally {
             if (em.isOpen()) em.close();
         }

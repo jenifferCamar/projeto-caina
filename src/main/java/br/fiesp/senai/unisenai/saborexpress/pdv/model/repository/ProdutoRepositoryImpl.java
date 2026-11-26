@@ -2,6 +2,8 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -80,7 +82,7 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw new RuntimeException("Erro ao persistir produto: " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao persistir produto.", e);
         } finally {
             if (em.isOpen()) {
                 em.close();
@@ -126,7 +128,7 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
             tx.begin();
             Produto produto = em.find(Produto.class, id);
             if (produto == null) {
-                throw new IllegalArgumentException("Produto não encontrado para o ID: " + id);
+                throw new BusinessException("Produto não encontrado para o ID: " + id);
             }
             em.remove(produto);
             tx.commit();
@@ -134,7 +136,7 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw new RuntimeException("Erro ao excluir produto ID " + id + ": " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao excluir produto.", e);
         } finally {
             if (em.isOpen()) {
                 em.close();

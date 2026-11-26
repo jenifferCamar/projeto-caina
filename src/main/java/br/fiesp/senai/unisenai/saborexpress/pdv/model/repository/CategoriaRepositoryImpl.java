@@ -1,6 +1,8 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -62,7 +64,7 @@ public class CategoriaRepositoryImpl implements CategoriaRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw new RuntimeException("Erro ao persistir categoria: " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao persistir categoria.", e);
         } finally {
             if (em.isOpen()) {
                 em.close();
@@ -111,7 +113,7 @@ public class CategoriaRepositoryImpl implements CategoriaRepository {
             tx.begin();
             Categoria categoria = em.find(Categoria.class, id);
             if (categoria == null) {
-                throw new IllegalArgumentException("Categoria não encontrada para o ID: " + id);
+                throw new BusinessException("Categoria não encontrada para o ID: " + id);
             }
             em.remove(categoria);
             tx.commit();

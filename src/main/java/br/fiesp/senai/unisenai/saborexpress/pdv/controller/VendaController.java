@@ -2,6 +2,9 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ProdutoInativoException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
@@ -146,12 +149,11 @@ public class VendaController implements ProdutoObserver {
         // Validação preemptiva de status ativo do produto
         try {
             produtoService.validarDisponibilidadeParaVenda(produtoSelecionado);
-        } catch (IllegalStateException ex) {
-            JOptionPane.showMessageDialog(
-                    mainFrame,
-                    ex.getMessage(),
-                    "Produto Indisponível",
-                    JOptionPane.WARNING_MESSAGE);
+        } catch (ProdutoInativoException ex) {
+            JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Produto Indisponível", JOptionPane.WARNING_MESSAGE);
+            return;
+        } catch (BusinessException ex) {
+            JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Validação de Venda", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -160,7 +162,8 @@ public class VendaController implements ProdutoObserver {
         try {
             quantidade = Integer.parseInt(quantidadeTexto);
             if (quantidade <= 0) {
-                throw new IllegalArgumentException("A quantidade deve ser um número inteiro positivo.");
+                JOptionPane.showMessageDialog(mainFrame, "Quantidade inválida. Informe um número inteiro positivo (ex.: 2).", "Validação de Dados", JOptionPane.WARNING_MESSAGE);
+                return;
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(
@@ -255,7 +258,7 @@ public class VendaController implements ProdutoObserver {
                     .orElseGet(() -> produtoService.listarTodos().stream()
                             .filter(p -> p.getNome().equalsIgnoreCase(nomeProduto))
                             .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Produto não encontrado: " + nomeProduto)));
+                            .orElseThrow(() -> new BusinessException("Produto não encontrado: " + nomeProduto)));
 
             carrinho.add(new ItemCarrinho(
                     produto.getId(),
@@ -286,20 +289,16 @@ public class VendaController implements ProdutoObserver {
             atualizarTotalParcial();
             caixaView.getTxtCliente().setText("");
 
-        } catch (IllegalStateException | IllegalArgumentException ex) {
-            // Erros de validação amigáveis (produto inativo, estoque insuficiente, etc.)
-            JOptionPane.showMessageDialog(
-                    mainFrame,
-                    ex.getMessage(),
-                    "Atenção - Operação Não Permitida",
-                    JOptionPane.WARNING_MESSAGE);
+        } catch (ProdutoInativoException ex) {
+            JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Produto Indisponível", JOptionPane.WARNING_MESSAGE);
+        } catch (BusinessException ex) {
+            JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Validação de Venda", JOptionPane.WARNING_MESSAGE);
+        } catch (PersistenceException ex) {
+            JOptionPane.showMessageDialog(mainFrame, "Não foi possível concluir a venda. Tente novamente.", "Erro de Persistência", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro de persistência ao finalizar venda: " + ex.getMessage());
         } catch (Exception ex) {
-            // Erros inesperados de infraestrutura ou banco
-            JOptionPane.showMessageDialog(
-                    mainFrame,
-                    "Falha ao finalizar venda: " + ex.getMessage(),
-                    "Erro no Banco de Dados",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainFrame, "Ocorreu um erro inesperado ao finalizar a venda.", "Erro", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro inesperado ao finalizar venda: " + ex.getMessage());
         }
     }
 
@@ -364,7 +363,7 @@ public class VendaController implements ProdutoObserver {
                 total = total.add(subtotal);
             }
         }
-        caixaView.atualizarTotal(MOEDA_FORMATTER.format(total));
+        caixaView.atualizarTotal(total);
     }
 
     /**

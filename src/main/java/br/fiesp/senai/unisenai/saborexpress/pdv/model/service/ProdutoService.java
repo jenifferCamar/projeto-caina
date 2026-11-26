@@ -2,7 +2,9 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.service;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ProdutoInativoException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepositoryImpl;
@@ -125,7 +127,7 @@ public class ProdutoService {
                 try {
                     observer.onProdutosChanged(Collections.unmodifiableList(listaAtualizada));
                 } catch (Exception e) {
-                    System.err.println("Erro ao notificar observador: " + e.getMessage());
+                    System.err.println("Erro ao notificar observador de produtos: " + e.getMessage());
                 }
             }
         });
@@ -140,21 +142,20 @@ public class ProdutoService {
      *
      * @param produto Entidade a ser cadastrada.
      * @return Produto salvo com ID atribuído.
-     * @throws IllegalArgumentException se violar regras de negócio ou validações.
+     * @throws ValidationException se violar validações.
+     * @throws BusinessException se violar regras de negócio.
      */
     public Produto salvar(Produto produto) {
         validarRegrasProduto(produto);
 
         // Validação de Unicidade do Código de Barras
         if (produtoRepository.existsByCodigoBarras(produto.getCodigoBarras())) {
-            throw new IllegalArgumentException(
-                    "Já existe um produto cadastrado com o código de barras informado: " + produto.getCodigoBarras());
+            throw new BusinessException("Já existe um produto cadastrado com o código de barras informado: " + produto.getCodigoBarras());
         }
 
         // Validação de Unicidade do Nome
         if (produtoRepository.existsByNome(produto.getNome())) {
-            throw new IllegalArgumentException(
-                    "Já existe um produto cadastrado com o nome informado: " + produto.getNome());
+            throw new BusinessException("Já existe um produto cadastrado com o nome informado: " + produto.getNome());
         }
 
         // Validação de existência da Categoria
@@ -170,28 +171,24 @@ public class ProdutoService {
      *
      * @param produto Entidade contendo as alterações.
      * @return Produto atualizado.
-     * @throws IllegalArgumentException se violar regras de negócio ou validações.
+     * @throws ValidationException se violar validações.
+     * @throws BusinessException se violar regras de negócio.
      */
     public Produto atualizar(Produto produto) {
         if (produto.getId() == null) {
-            throw new IllegalArgumentException("O produto deve possuir um ID para ser atualizado.");
+            throw new ValidationException("O produto deve possuir um ID para ser atualizado.");
         }
         validarRegrasProduto(produto);
 
         // Validação de Código de Barras duplicado para outro produto diferente
         Optional<Produto> existenteCodigoBarras = produtoRepository.findByCodigoBarras(produto.getCodigoBarras());
         if (existenteCodigoBarras.isPresent() && !existenteCodigoBarras.get().getId().equals(produto.getId())) {
-            throw new IllegalArgumentException(
-                    "O código de barras '" + produto.getCodigoBarras() +
-                            "' já pertence a outro produto cadastrado (#" + existenteCodigoBarras.get().getId() + " - "
-                            + existenteCodigoBarras.get().getNome() + ").");
+            throw new BusinessException("O código de barras '" + produto.getCodigoBarras() + "' já está em uso por outro produto.");
         }
 
         // Validação de Nome duplicado para outro produto diferente
         if (produtoRepository.existsByNomeAndIdNot(produto.getNome(), produto.getId())) {
-            throw new IllegalArgumentException(
-                    "O nome '" + produto.getNome() +
-                            "' já pertence a outro produto cadastrado.");
+            throw new BusinessException("O nome '" + produto.getNome() + "' já está em uso por outro produto.");
         }
 
         // Validação de existência da Categoria
@@ -206,11 +203,11 @@ public class ProdutoService {
      * Exclui um produto pelo seu identificador e notifica os observadores.
      *
      * @param id Identificador do produto a ser removido.
-     * @throws IllegalArgumentException se ID for nulo.
+     * @throws ValidationException se ID for nulo.
      */
     public void excluir(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("ID inválido para exclusão.");
+            throw new ValidationException("ID inválido para exclusão.");
         }
         produtoRepository.deleteById(id);
         notificarObservadores();
@@ -313,7 +310,7 @@ public class ProdutoService {
     public Categoria salvarCategoria(Categoria categoria) {
         validarCategoriaRegras(categoria);
         if (categoriaRepository.existsByNomeIgnoreCase(categoria.getNome())) {
-            throw new IllegalArgumentException("Já existe uma categoria com o nome: " + categoria.getNome());
+            throw new BusinessException("Já existe uma categoria com o nome: " + categoria.getNome());
         }
         return categoriaRepository.save(categoria);
     }
@@ -355,11 +352,11 @@ public class ProdutoService {
      * Valida as regras de negócio do produto, incluindo Bean Validation.
      *
      * @param produto Produto a ser validado.
-     * @throws IllegalArgumentException se houver violações.
+     * @throws ValidationException se houver violações.
      */
     private void validarRegrasProduto(Produto produto) {
         if (produto == null) {
-            throw new IllegalArgumentException("Dados do produto não podem ser nulos.");
+            throw new ValidationException("Dados do produto não podem ser nulos.");
         }
 
         // 1. Bean Validation (anotações na entidade)
@@ -369,28 +366,28 @@ public class ProdutoService {
             for (ConstraintViolation<Produto> v : violations) {
                 mensagens.append(v.getMessage()).append("; ");
             }
-            throw new IllegalArgumentException(mensagens.toString());
+            throw new ValidationException(mensagens.toString());
         }
 
         // 2. Validações adicionais de negócio não cobertas por anotações
         if (produto.getCodigoBarras() == null || produto.getCodigoBarras().trim().isEmpty()) {
-            throw new IllegalArgumentException("O Código de Barras é obrigatório.");
+            throw new ValidationException("O Código de Barras é obrigatório.");
         }
 
         if (produto.getNome() == null || produto.getNome().trim().isEmpty()) {
-            throw new IllegalArgumentException("O Nome do Produto é obrigatório.");
+            throw new ValidationException("O Nome do Produto é obrigatório.");
         }
 
         if (produto.getPreco() == null) {
-            throw new IllegalArgumentException("O Preço do Produto é obrigatório.");
+            throw new ValidationException("O Preço do Produto é obrigatório.");
         }
 
         if (produto.getPreco().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O Preço do Produto deve ser estritamente positivo (maior que zero).");
+            throw new ValidationException("O Preço do Produto deve ser estritamente positivo (maior que zero).");
         }
 
         if (produto.getCategoria() == null) {
-            throw new IllegalArgumentException("A Categoria é obrigatória.");
+            throw new ValidationException("A Categoria é obrigatória.");
         }
 
         if (produto.getAtivo() == null) {
@@ -398,11 +395,11 @@ public class ProdutoService {
         }
 
         if (produto.getEstoque() == null) {
-            throw new IllegalArgumentException("A Quantidade em Estoque é obrigatória.");
+            throw new ValidationException("A Quantidade em Estoque é obrigatória.");
         }
 
         if (produto.getEstoque() < 0) {
-            throw new IllegalArgumentException("A Quantidade em Estoque não pode ser negativa.");
+            throw new ValidationException("A Quantidade em Estoque não pode ser negativa.");
         }
     }
 
@@ -410,21 +407,22 @@ public class ProdutoService {
      * Valida se a categoria existe e está ativa.
      *
      * @param categoria Categoria a ser validada.
-     * @throws IllegalArgumentException se a categoria for inválida.
+     * @throws ValidationException se a categoria for inválida.
+     * @throws BusinessException se a categoria não existir ou estiver inativa.
      */
     private void validarCategoria(Categoria categoria) {
         if (categoria == null) {
-            throw new IllegalArgumentException("A Categoria é obrigatória.");
+            throw new ValidationException("A Categoria é obrigatória.");
         }
         if (categoria.getId() == null) {
-            throw new IllegalArgumentException("A Categoria deve possuir um ID válido.");
+            throw new ValidationException("A Categoria deve possuir um ID válido.");
         }
         Optional<Categoria> existente = categoriaRepository.findById(categoria.getId());
         if (existente.isEmpty()) {
-            throw new IllegalArgumentException("Categoria não encontrada: ID " + categoria.getId());
+            throw new BusinessException("Categoria não encontrada: ID " + categoria.getId());
         }
         if (!existente.get().getAtiva()) {
-            throw new IllegalArgumentException("A categoria '" + existente.get().getNome() + "' está inativa e não pode ser usada.");
+            throw new BusinessException("A categoria '" + existente.get().getNome() + "' está inativa e não pode ser usada.");
         }
     }
 
@@ -432,11 +430,11 @@ public class ProdutoService {
      * Valida as regras de negócio da categoria (Bean Validation + regras básicas).
      *
      * @param categoria Categoria a ser validada.
-     * @throws IllegalArgumentException se houver violações.
+     * @throws ValidationException se houver violações.
      */
     private void validarCategoriaRegras(Categoria categoria) {
         if (categoria == null) {
-            throw new IllegalArgumentException("Dados da categoria não podem ser nulos.");
+            throw new ValidationException("Dados da categoria não podem ser nulos.");
         }
 
         Set<ConstraintViolation<Categoria>> violations = validator.validate(categoria);
@@ -445,11 +443,11 @@ public class ProdutoService {
             for (ConstraintViolation<Categoria> v : violations) {
                 mensagens.append(v.getMessage()).append("; ");
             }
-            throw new IllegalArgumentException(mensagens.toString());
+            throw new ValidationException(mensagens.toString());
         }
 
         if (categoria.getNome() == null || categoria.getNome().trim().isEmpty()) {
-            throw new IllegalArgumentException("O Nome da Categoria é obrigatório.");
+            throw new ValidationException("O Nome da Categoria é obrigatório.");
         }
     }
 }
