@@ -343,6 +343,7 @@ public class VendaController implements ProdutoObserver {
         }
         try {
             vendaService.cancelarVenda(vendaSelecionada.getId());
+            historicoView.exibirDetalhesVenda(null, new ArrayList<>());
             JOptionPane.showMessageDialog(mainFrame, "Venda cancelada com sucesso. Estoque estornado.",
                     "Cancelamento", JOptionPane.INFORMATION_MESSAGE);
         } catch (BusinessException ex) {

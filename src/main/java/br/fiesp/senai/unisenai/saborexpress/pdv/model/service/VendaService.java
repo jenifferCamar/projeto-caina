@@ -168,7 +168,8 @@ public class VendaService {
             produtoService.atualizar(produto);
         }
 
-        // 4. Persiste a venda (e itens via cascade) de forma atômica
+        // 4. Marca como finalizada e persiste a venda (e itens via cascade) de forma atômica
+        venda.setStatus(Venda.STATUS_FINALIZADA);
         Venda vendaSalva = vendaRepository.salvar(venda);
 
         // 5. Notifica observadores de forma reativa (histórico, tabela, etc.)
