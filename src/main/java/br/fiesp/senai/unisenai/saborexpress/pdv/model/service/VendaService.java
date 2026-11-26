@@ -183,6 +183,17 @@ public class VendaService {
      *
      * @return Lista de vendas.
      */
+
+
+    public Venda cancelarVenda(Long id) {
+        if (id == null) {
+            throw new ValidationException("ID da venda é obrigatório para cancelamento.");
+        }
+        Venda cancelada = vendaRepository.cancelarVenda(id);
+        notificarObservadores();
+        produtoService.notificarObservadores();
+        return cancelada;
+    }
     public List<Venda> listarTodos() {
         return vendaRepository.listarTodos();
     }
