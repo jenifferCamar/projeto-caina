@@ -1,6 +1,5 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.MetricasVendasDTO;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 
 import java.math.BigDecimal;
