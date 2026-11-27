@@ -124,59 +124,45 @@ public class ProdutoListView extends JPanel {
             }
         });
 
-        // Botão Recarregar posicionado no canto superior direito da tabela
-        btnRecarregar = new JButton("Recarregar");
-        btnRecarregar.setPreferredSize(new Dimension(110, 30));
-        btnRecarregar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-
-        JPanel painelAcoesTabela = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
-        painelAcoesTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
-        painelAcoesTabela.add(btnRecarregar);
-
-        JPanel painelWrapperTabela = new JPanel(new BorderLayout());
-        painelWrapperTabela.add(painelAcoesTabela, BorderLayout.NORTH);
-
         JScrollPane scrollPane = new JScrollPane(tabelaProdutos);
         scrollPane.setBorder(BorderFactory.createTitledBorder(" Produtos Cadastrados "));
-        painelWrapperTabela.add(scrollPane, BorderLayout.CENTER);
-        add(painelWrapperTabela, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
         // 3. Rodapé com Ações e Contador de Registros
         JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
-        painelRodape.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // Contador de registros à esquerda
-        JPanel painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         lblTotalRegistros = new JLabel("Total: 0 produto(s)");
         lblTotalRegistros.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        painelContador.add(lblTotalRegistros);
-        painelRodape.add(painelContador, BorderLayout.WEST);
+        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        painelRodape.add(lblTotalRegistros, BorderLayout.WEST);
 
-        // Campo de busca no centro (expande para ocupar espaço disponível)
-        JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        txtBusca = new JTextField();
-        txtBusca.setMinimumSize(new Dimension(150, 30));
-        txtBusca.setPreferredSize(new Dimension(220, 30));
-        txtBusca.setToolTipText("Digite o nome ou código de barras para buscar");
-        btnBuscar = new JButton("Buscar");
-        btnLimparFiltro = new JButton("Limpar Filtro");
-        painelBusca.add(txtBusca);
-        painelBusca.add(btnBuscar);
-        painelBusca.add(btnLimparFiltro);
-        painelRodape.add(painelBusca, BorderLayout.CENTER);
-
-        // Botões de ação à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
 
+        btnRecarregar = new JButton("Recarregar");
+        btnRecarregar.setPreferredSize(new Dimension(110, 35));
+
+        txtBusca = new JTextField();
+        txtBusca.setPreferredSize(new Dimension(180, 30));
+        btnBuscar = new JButton("Buscar");
+        btnBuscar.setPreferredSize(new Dimension(90, 35));
+        btnLimparFiltro = new JButton("Limpar Filtro");
+        btnLimparFiltro.setPreferredSize(new Dimension(110, 35));
+
         btnExcluir = new JButton("Excluir");
+        btnExcluir.setPreferredSize(new Dimension(110, 35));
         btnExcluir.setForeground(new Color(180, 40, 40));
 
         btnEditar = new JButton("Editar");
+        btnEditar.setPreferredSize(new Dimension(110, 35));
 
         btnNovo = new JButton("+ Novo Produto");
+        btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
+        painelBotoes.add(btnRecarregar);
+        painelBotoes.add(txtBusca);
+        painelBotoes.add(btnBuscar);
+        painelBotoes.add(btnLimparFiltro);
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnNovo);
@@ -194,7 +180,7 @@ public class ProdutoListView extends JPanel {
     public void atualizarTabela(List<Produto> produtos) {
         tableModel.setProdutos(produtos);
         int total = (produtos != null) ? produtos.size() : 0;
-        lblTotalRegistros.setText(String.format("Total: %d produto(s)", total));
+        lblTotalRegistros.setText(String.format("Total: %d produto(s) cadastrado(s)", total));
     }
 
     /**
