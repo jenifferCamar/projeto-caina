@@ -13,8 +13,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -82,29 +84,76 @@ public class ProdutoListView extends JPanel {
         tabelaProdutos.getTableHeader().setReorderingAllowed(false);
 
         // Ajuste didático de largura das colunas
-        tabelaProdutos.getColumnModel().getColumn(0).setPreferredWidth(60); // ID
-        tabelaProdutos.getColumnModel().getColumn(1).setPreferredWidth(140); // Código de Barras
-        tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(280); // Nome
-        tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(120); // Preço
-        tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(100); // Quantidade
-        tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(90);  // Status
+        tabelaProdutos.getColumnModel().getColumn(0).setPreferredWidth(50); // ID
+        tabelaProdutos.getColumnModel().getColumn(1).setPreferredWidth(120); // Código de Barras
+        tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(240); // Nome
+        tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(100); // Preço
+        tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(80);  // Qtd. Estoque
+        tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(80);  // Estoque Mínimo
+        tabelaProdutos.getColumnModel().getColumn(6).setPreferredWidth(70);  // Status
+        tabelaProdutos.getColumnModel().getColumn(7).setPreferredWidth(80);  // Alerta Estoque
+
+        // Renderer customizado para destacar visualmente estoque zerado ou baixo
+        tabelaProdutos.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            private static final Color COR_ZERADO = new Color(180, 40, 40); // vermelho escuro
+            private static final Color COR_BAIXO = new Color(210, 130, 0);  // laranja
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                if (!isSelected) {
+                    Produto produto = tableModel.getProdutoAt(row);
+                    if (produto != null) {
+                        if (produto.isEstoqueZerado()) {
+                            c.setForeground(COR_ZERADO);
+                            c.setFont(c.getFont().deriveFont(Font.BOLD));
+                        } else if (produto.isEstoqueBaixo()) {
+                            c.setForeground(COR_BAIXO);
+                        } else {
+                            c.setForeground(Color.BLACK);
+                        }
+                    } else {
+                        c.setForeground(Color.BLACK);
+                    }
+                }
+
+                return c;
+            }
+        });
+
+        // Botão Recarregar posicionado no canto superior direito da tabela
+        btnRecarregar = new JButton("Recarregar");
+        btnRecarregar.setPreferredSize(new Dimension(110, 30));
+        btnRecarregar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        JPanel painelAcoesTabela = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
+        painelAcoesTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
+        painelAcoesTabela.add(btnRecarregar);
+
+        JPanel painelWrapperTabela = new JPanel(new BorderLayout());
+        painelWrapperTabela.add(painelAcoesTabela, BorderLayout.NORTH);
 
         JScrollPane scrollPane = new JScrollPane(tabelaProdutos);
         scrollPane.setBorder(BorderFactory.createTitledBorder(" Produtos Cadastrados "));
-        add(scrollPane, BorderLayout.CENTER);
+        painelWrapperTabela.add(scrollPane, BorderLayout.CENTER);
+        add(painelWrapperTabela, BorderLayout.CENTER);
 
         // 3. Rodapé com Ações e Contador de Registros
         JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
+        painelRodape.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+        JPanel         painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         lblTotalRegistros = new JLabel("Total: 0 produto(s)");
         lblTotalRegistros.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        painelRodape.add(lblTotalRegistros, BorderLayout.WEST);
+        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        lblTotalRegistros.setPreferredSize(new Dimension(200, 25));
+        painelContador.add(lblTotalRegistros);
+        painelRodape.add(painelContador, BorderLayout.WEST);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-
-        btnRecarregar = new JButton("Recarregar");
-        btnRecarregar.setPreferredSize(new Dimension(110, 35));
 
         txtBusca = new JTextField();
         txtBusca.setPreferredSize(new Dimension(180, 30));
@@ -124,7 +173,6 @@ public class ProdutoListView extends JPanel {
         btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-        painelBotoes.add(btnRecarregar);
         painelBotoes.add(txtBusca);
         painelBotoes.add(btnBuscar);
         painelBotoes.add(btnLimparFiltro);
@@ -145,7 +193,7 @@ public class ProdutoListView extends JPanel {
     public void atualizarTabela(List<Produto> produtos) {
         tableModel.setProdutos(produtos);
         int total = (produtos != null) ? produtos.size() : 0;
-        lblTotalRegistros.setText(String.format("Total: %d produto(s) cadastrado(s)", total));
+        lblTotalRegistros.setText(String.format("Total: %d produto(s)", total));
     }
 
     /**

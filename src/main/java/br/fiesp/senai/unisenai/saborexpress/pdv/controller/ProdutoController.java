@@ -210,6 +210,13 @@ public class ProdutoController implements ProdutoObserver {
                 throw new BusinessException("Quantidade em estoque inválida. Informe um número inteiro (ex.: 10).");
             }
 
+            Integer estoqueMinimo;
+            try {
+                estoqueMinimo = Integer.parseInt(formView.getEstoqueMinimoTexto());
+            } catch (NumberFormatException ex) {
+                throw new BusinessException("Estoque mínimo inválido. Informe um número inteiro (ex.: 3).");
+            }
+
             Long id = formView.getProdutoIdAtual();
             boolean ativo = formView.isAtivoSelecionado();
 
@@ -219,7 +226,7 @@ public class ProdutoController implements ProdutoObserver {
                         .findFirst()
                         .orElse(null);
 
-                Produto novoProduto = new Produto(codigoBarras, nome, "", preco, categoriaPadrao, ativo, quantidadeEstoque);
+                Produto novoProduto = new Produto(codigoBarras, nome, "", preco, categoriaPadrao, ativo, quantidadeEstoque, estoqueMinimo);
                 service.salvar(novoProduto);
                 JOptionPane.showMessageDialog(
                         mainFrame,
@@ -232,7 +239,7 @@ public class ProdutoController implements ProdutoObserver {
                 Categoria categoria = (existente != null) ? existente.getCategoria() : null;
                 String descricao = (existente != null) ? existente.getDescricao() : "";
 
-                Produto produtoAtualizado = new Produto(id, codigoBarras, nome, descricao, preco, categoria, ativo, quantidadeEstoque);
+                Produto produtoAtualizado = new Produto(id, codigoBarras, nome, descricao, preco, categoria, ativo, quantidadeEstoque, estoqueMinimo);
                 service.atualizar(produtoAtualizado);
                 JOptionPane.showMessageDialog(
                         mainFrame,
