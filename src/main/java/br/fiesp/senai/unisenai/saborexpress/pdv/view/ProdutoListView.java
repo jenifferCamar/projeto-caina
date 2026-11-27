@@ -174,6 +174,32 @@ public class ProdutoListView extends JPanel {
         painelContador.add(lblTotalRegistros);
         painelRodape.add(painelContador, BorderLayout.WEST);
 
+// 3. Rodapé com Ações e Contador de Registros
+        JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
+        painelRodape.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        // Contador de registros à esquerda
+        JPanel painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        lblTotalRegistros = new JLabel("Total: 0 produto(s)");
+        lblTotalRegistros.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        painelContador.add(lblTotalRegistros);
+        painelRodape.add(painelContador, BorderLayout.WEST);
+
+        // Campo de busca no centro (expande para ocupar espaço disponível)
+        JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        txtBusca = new JTextField();
+        txtBusca.setMinimumSize(new Dimension(150, 30));
+        txtBusca.setPreferredSize(new Dimension(220, 30));
+        txtBusca.setToolTipText("Digite o nome ou código de barras para buscar (busca automática ao digitar)");
+        btnBuscar = new JButton("Buscar");
+        btnLimparFiltro = new JButton("Limpar Filtro");
+        painelBusca.add(txtBusca);
+        painelBusca.add(btnBuscar);
+        painelBusca.add(btnLimparFiltro);
+        painelRodape.add(painelBusca, BorderLayout.CENTER);
+
+        // Botões de ação à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
 
         btnExcluir = new JButton("Excluir");
@@ -189,7 +215,6 @@ public class ProdutoListView extends JPanel {
         painelBotoes.add(btnNovo);
 
         painelRodape.add(painelBotoes, BorderLayout.EAST);
-        add(painelRodape, BorderLayout.SOUTH);
         add(painelRodape, BorderLayout.SOUTH);
     }
 
@@ -261,5 +286,9 @@ public class ProdutoListView extends JPanel {
 
     public void limparBusca() {
         txtBusca.setText("");
+    }
+
+    public JTextField getTxtBusca() {
+        return txtBusca;
     }
 }

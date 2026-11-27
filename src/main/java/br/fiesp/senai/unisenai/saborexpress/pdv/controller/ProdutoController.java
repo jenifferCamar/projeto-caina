@@ -50,6 +50,9 @@ public class ProdutoController implements ProdutoObserver {
     private final ProdutoFormView formView;
     private final ProdutoService service;
 
+    // Timer para debounce da busca (1.5s)
+    private final Timer searchDebounceTimer;
+
     /**
      * Construtor recebendo a camada de serviço.
      *
