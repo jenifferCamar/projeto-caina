@@ -65,7 +65,7 @@ class ProdutoRepositoryTest {
     @Test
     @DisplayName("Deve salvar um novo produto com sucesso e gerar ID autoincremento")
     void deveSalvarProdutoComSucesso() {
-        Produto p = new Produto("78910001", "Café Gourmet 500g", "Café premium", new BigDecimal("22.50"), categoria, 15);
+        Produto p = new Produto("78910001", "Café Gourmet 500g", "Café premium", new BigDecimal("22.50"), categoria, 15, 0);
         Produto salvo = repository.save(p);
 
         assertNotNull(salvo.getId(), "O ID gerado pelo banco não deve ser nulo");
@@ -77,7 +77,7 @@ class ProdutoRepositoryTest {
     @Test
     @DisplayName("Deve buscar produto por ID existente")
     void deveBuscarPorId() {
-        Produto p = new Produto("78910002", "Açúcar Cristal 1kg", "Açúcar refinado", new BigDecimal("4.80"), categoria, 50);
+        Produto p = new Produto("78910002", "Açúcar Cristal 1kg", "Açúcar refinado", new BigDecimal("4.80"), categoria, 50, 0);
         Produto salvo = repository.save(p);
 
         Optional<Produto> encontrado = repository.findById(salvo.getId());
@@ -88,7 +88,7 @@ class ProdutoRepositoryTest {
     @Test
     @DisplayName("Deve buscar produto por código de barras único")
     void deveBuscarPorCodigoBarras() {
-        Produto p = new Produto("78910003", "Arroz Tipo 1 5kg", "Arroz branco", new BigDecimal("29.90"), categoria, 30);
+        Produto p = new Produto("78910003", "Arroz Tipo 1 5kg", "Arroz branco", new BigDecimal("29.90"), categoria, 30, 0);
         repository.save(p);
 
         Optional<Produto> encontrado = repository.findByCodigoBarras("78910003");
@@ -99,7 +99,7 @@ class ProdutoRepositoryTest {
     @Test
     @DisplayName("Deve atualizar dados de um produto existente")
     void deveAtualizarProduto() {
-        Produto p = new Produto("78910004", "Feijão Preto 1kg", "Feijão preto", new BigDecimal("8.50"), categoria, 20);
+        Produto p = new Produto("78910004", "Feijão Preto 1kg", "Feijão preto", new BigDecimal("8.50"), categoria, 20, 0);
         Produto salvo = repository.save(p);
 
         salvo.setPreco(new BigDecimal("9.00"));
@@ -113,7 +113,7 @@ class ProdutoRepositoryTest {
     @Test
     @DisplayName("Deve excluir produto por ID com sucesso")
     void deveExcluirProduto() {
-        Produto p = new Produto("78910005", "Óleo de Soja 900ml", "Óleo vegetal", new BigDecimal("6.20"), categoria, 40);
+        Produto p = new Produto("78910005", "Óleo de Soja 900ml", "Óleo vegetal", new BigDecimal("6.20"), categoria, 40, 0);
         Produto salvo = repository.save(p);
 
         repository.deleteById(salvo.getId());
@@ -124,8 +124,8 @@ class ProdutoRepositoryTest {
     @Test
     @DisplayName("Deve listar todos os produtos cadastrados ordenados por nome")
     void deveListarTodosOsProdutos() {
-        repository.save(new Produto("78910006", "Bolacha Recheada 140g", "Bolacha", new BigDecimal("3.50"), categoria, 100));
-        repository.save(new Produto("78910007", "Amaciante 2L", "Amaciante", new BigDecimal("14.90"), categoria, 12));
+        repository.save(new Produto("78910006", "Bolacha Recheada 140g", "Bolacha", new BigDecimal("3.50"), categoria, 100, 0));
+        repository.save(new Produto("78910007", "Amaciante 2L", "Amaciante", new BigDecimal("14.90"), categoria, 12, 0));
 
         List<Produto> lista = repository.findAll();
         assertFalse(lista.isEmpty());

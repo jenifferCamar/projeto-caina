@@ -58,27 +58,27 @@ class ProdutoServiceTest {
     @Test
     @DisplayName("Deve rejeitar produto com preço negativo ou zero")
     void deveRejeitarPrecoInvalido() {
-        Produto pZero = new Produto("111", "Item Zero", "Desc", BigDecimal.ZERO, categoria, 10);
+        Produto pZero = new Produto("111", "Item Zero", "Desc", BigDecimal.ZERO, categoria, 10, 0);
         assertThrows(ValidationException.class, () -> service.salvar(pZero));
 
-        Produto pNegativo = new Produto("112", "Item Negativo", "Desc", new BigDecimal("-5.00"), categoria, 10);
+        Produto pNegativo = new Produto("112", "Item Negativo", "Desc", new BigDecimal("-5.00"), categoria, 10, 0);
         assertThrows(ValidationException.class, () -> service.salvar(pNegativo));
     }
 
     @Test
     @DisplayName("Deve rejeitar produto com quantidade em estoque negativa")
     void deveRejeitarEstoqueNegativo() {
-        Produto p = new Produto("113", "Item Estoque Inválido", "Desc", new BigDecimal("10.00"), categoria, -1);
+        Produto p = new Produto("113", "Item Estoque Inválido", "Desc", new BigDecimal("10.00"), categoria, -1, 0);
         assertThrows(ValidationException.class, () -> service.salvar(p));
     }
 
     @Test
     @DisplayName("Deve rejeitar produto com código de barras duplicado")
     void deveRejeitarCodigoBarrasDuplicado() {
-        Produto p1 = new Produto("9999", "Produto Original", "Desc", new BigDecimal("15.00"), categoria, 5);
+        Produto p1 = new Produto("9999", "Produto Original", "Desc", new BigDecimal("15.00"), categoria, 5, 0);
         service.salvar(p1);
 
-        Produto p2 = new Produto("9999", "Produto Clonado", "Desc", new BigDecimal("20.00"), categoria, 8);
+        Produto p2 = new Produto("9999", "Produto Clonado", "Desc", new BigDecimal("20.00"), categoria, 8, 0);
         BusinessException ex = assertThrows(BusinessException.class, () -> service.salvar(p2));
         assertTrue(ex.getMessage().contains("Já existe um produto cadastrado com o código de barras"));
     }
@@ -93,7 +93,7 @@ class ProdutoServiceTest {
         };
         service.addObserver(observer);
 
-        Produto p = new Produto("8888", "Produto Observer Test", "Desc", new BigDecimal("12.50"), categoria, 10);
+        Produto p = new Produto("8888", "Produto Observer Test", "Desc", new BigDecimal("12.50"), categoria, 10, 0);
         service.salvar(p);
 
         // Aguarda despacho na EDT do Swing

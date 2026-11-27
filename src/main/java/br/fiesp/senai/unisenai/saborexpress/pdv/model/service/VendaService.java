@@ -2,8 +2,10 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.service;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.MetricasVendasDTO;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.EstoqueInsuficienteException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
@@ -11,6 +13,7 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.VendaRepository
 
 import javax.swing.SwingUtilities;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -142,7 +145,8 @@ public class VendaService {
 
             Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
             if (estoqueAtual < itemCarrinho.getQuantidade()) {
-                throw new BusinessException(String.format("Estoque insuficiente para '%s': disponível=%d, solicitado=%d.", produto.getNome(), estoqueAtual, itemCarrinho.getQuantidade()));
+                throw new EstoqueInsuficienteException(produto.getNome(), estoqueAtual,
+                        itemCarrinho.getQuantidade());
             }
         }
 
@@ -163,7 +167,8 @@ public class VendaService {
             venda.adicionarItem(itemVenda);
 
             // Aplica baixa de estoque
-            Integer novoEstoque = produto.getEstoque() - itemCarrinho.getQuantidade();
+            Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
+            Integer novoEstoque = estoqueAtual - itemCarrinho.getQuantidade();
             produto.setEstoque(novoEstoque);
             produtoService.atualizar(produto);
         }
@@ -183,6 +188,17 @@ public class VendaService {
      *
      * @return Lista de vendas.
      */
+
+
+    public Venda cancelarVenda(Long id) {
+        if (id == null) {
+            throw new ValidationException("ID da venda é obrigatório para cancelamento.");
+        }
+        Venda cancelada = vendaRepository.cancelarVenda(id);
+        notificarObservadores();
+        produtoService.notificarObservadores();
+        return cancelada;
+    }
     public List<Venda> listarTodos() {
         return vendaRepository.listarTodos();
     }
@@ -195,5 +211,46 @@ public class VendaService {
      */
     public Optional<Venda> buscarPorId(Long id) {
         return vendaRepository.buscarPorId(id);
+    }
+
+    // ==========================================
+    // METRICAS DE VENDAS (DASHBOARD)
+    // ==========================================
+
+    /**
+     * Calcula as metricas de vendas para o período informado.
+     * <p>
+     * Apenas vendas com status {@code FINALIZADA} são consideradas. Vendas
+     * canceladas são ignoradas para não distorcer o faturamento e o ticket medio.
+     *
+     * @param inicio Data/hora inicial do filtro (pode ser {@code null} para
+     *               consulta geral sem filtro de período).
+     * @param fim    Data/hora final do filtro (pode ser {@code null} para consulta
+     *               geral sem filtro de período).
+     * @return DTO imutável contendo quantidade de vendas, faturamento total e
+     *         ticket médio.
+     */
+    public MetricasVendasDTO calcularMetricas(LocalDateTime inicio, LocalDateTime fim) {
+        Long quantidade = vendaRepository.contarVendasFinalizadas(inicio, fim);
+        BigDecimal faturamento = vendaRepository.somarFaturamentoFinalizado(inicio, fim);
+
+        BigDecimal ticketMedio = BigDecimal.ZERO;
+        if (quantidade != null && quantidade > 0 && faturamento != null) {
+            ticketMedio = faturamento.divide(BigDecimal.valueOf(quantidade),
+                    2, BigDecimal.ROUND_HALF_UP);
+        }
+
+        return new MetricasVendasDTO(quantidade, faturamento, ticketMedio, inicio, fim);
+    }
+
+    /**
+     * Calcula as metricas de vendas considerando todas as vendas finalizadas,
+     * sem filtro de período.
+     *
+     * @return DTO imutável contendo quantidade de vendas, faturamento total e
+     *         ticket médio.
+     */
+    public MetricasVendasDTO calcularMetricas() {
+        return calcularMetricas(null, null);
     }
 }

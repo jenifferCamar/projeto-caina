@@ -2,14 +2,17 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.EstoqueInsuficienteException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ProdutoInativoException;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.CaixaView;
+import br.fiesp.senai.unisenai.saborexpress.pdv.view.DashboardView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.HistoricoVendasView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel.VendaTableModel;
@@ -77,6 +80,10 @@ public class VendaController implements ProdutoObserver {
         // Registra o VendaTableModel da view como observador do VendaService
         // para atualização reativa do histórico após cada venda finalizada
         this.vendaService.addObserver(this.vendaTableModel);
+
+        // Registra o DashboardView como observador do VendaService
+        // para atualização reativa dos indicadores após cada venda/cancelamento
+        this.vendaService.addObserver(this.mainFrame.getDashboardView());
 
         // Registra o Controller como observador de Produtos para atualizar o caixa reativamente
         this.produtoService.addObserver(this);
@@ -176,6 +183,20 @@ public class VendaController implements ProdutoObserver {
 
         BigDecimal precoUnitario = produtoSelecionado.getPreco();
         BigDecimal subtotal = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+
+        // Validação preemptiva de estoque antes de adicionar ao carrinho
+        Integer estoqueDisponivel = produtoSelecionado.getEstoque() != null
+                ? produtoSelecionado.getEstoque()
+                : 0;
+        if (estoqueDisponivel < quantidade) {
+            JOptionPane.showMessageDialog(
+                    mainFrame,
+                    String.format("Não foi possível adicionar o item.\nEstoque disponível de '%s': %d unidade(s).\nQuantidade solicitada: %d.",
+                            produtoSelecionado.getNome(), estoqueDisponivel, quantidade),
+                    "Estoque Insuficiente",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         ItemCarrinho itemCarrinho = new ItemCarrinho(
                 produtoSelecionado.getId(),
@@ -291,6 +312,13 @@ public class VendaController implements ProdutoObserver {
 
         } catch (ProdutoInativoException ex) {
             JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Produto Indisponível", JOptionPane.WARNING_MESSAGE);
+        } catch (EstoqueInsuficienteException ex) {
+            JOptionPane.showMessageDialog(
+                    mainFrame,
+                    String.format("Não foi possível concluir a venda.\nEstoque disponível de '%s': %d unidade(s).\nQuantidade solicitada: %d.",
+                            ex.getNomeProduto(), ex.getEstoqueDisponivel(), ex.getQuantidadeSolicitada()),
+                    "Estoque Insuficiente",
+                    JOptionPane.WARNING_MESSAGE);
         } catch (BusinessException ex) {
             JOptionPane.showMessageDialog(mainFrame, ex.getMessage(), "Validação de Venda", JOptionPane.WARNING_MESSAGE);
         } catch (PersistenceException ex) {
