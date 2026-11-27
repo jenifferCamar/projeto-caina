@@ -125,6 +125,7 @@ public class VendaController implements ProdutoObserver {
 
         // --- Eventos do Histórico ---
         historicoView.getBtnAtualizar().addActionListener(e -> onAtualizarHistorico());
+        historicoView.getBtnCancelarVenda().addActionListener(e -> onCancelarVendaHistorico());
         historicoView.getTabelaVendas().getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 onVendaSelecionadaNoHistorico();
@@ -348,6 +349,44 @@ public class VendaController implements ProdutoObserver {
 
     private void onAtualizarHistorico() {
         this.vendaService.notificarObservadores();
+    }
+
+    private void onCancelarVendaHistorico() {
+        int selectedRow = historicoView.getTabelaVendas().getSelectedRow();
+        Venda vendaSelecionada = historicoView.getVendasTableModel().getVendaAt(selectedRow);
+        if (vendaSelecionada == null) {
+            JOptionPane.showMessageDialog(mainFrame, "Selecione uma venda no histórico para cancelar.",
+                    "Atenção", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (Venda.STATUS_CANCELADA.equals(vendaSelecionada.getStatus())) {
+            JOptionPane.showMessageDialog(mainFrame, "A venda selecionada já está cancelada.",
+                    "Atenção", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int confirmacao = JOptionPane.showConfirmDialog(mainFrame,
+                "Deseja cancelar a venda #" + vendaSelecionada.getId() + "? O estoque será estornado.",
+                "Confirmar Cancelamento", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirmacao != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            vendaService.cancelarVenda(vendaSelecionada.getId());
+            historicoView.exibirDetalhesVenda(null, new ArrayList<>());
+            JOptionPane.showMessageDialog(mainFrame, "Venda cancelada com sucesso. Estoque estornado.",
+                    "Cancelamento", JOptionPane.INFORMATION_MESSAGE);
+        } catch (BusinessException ex) {
+            JOptionPane.showMessageDialog(mainFrame, ex.getMessage(),
+                    "Regra de Negócio", JOptionPane.WARNING_MESSAGE);
+        } catch (PersistenceException ex) {
+            JOptionPane.showMessageDialog(mainFrame, "Não foi possível cancelar a venda. Tente novamente.",
+                    "Erro de Persistência", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro de persistência ao cancelar venda: " + ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(mainFrame, "Ocorreu um erro inesperado ao cancelar a venda.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro inesperado ao cancelar venda: " + ex.getMessage());
+        }
     }
 
     private void onVendaSelecionadaNoHistorico() {
