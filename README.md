@@ -26,30 +26,30 @@ O **Sabor Express PDV** é uma aplicação desktop desenvolvida para atender às
 
 ### Módulos Entregues
 
-- 🍔 **Gestão de Cardápio com Categorias:**
+- **Gestão de Cardápio com Categorias:**
   - Organização lógica dos itens em categorias (`Lanche`, `Bebida`, `Acompanhamento` e `Sobremesa`).
   - Cadastro, edição, ativação/inativação (`ativo`) e remoção de produtos (`ProdutoListView`, `ProdutoFormView`).
   - Busca dinâmica com *debounce* (1,5 s) e normalização sem acentos, além de filtro por texto/código de barras.
 
-- 🛒 **Frente de Caixa (PDV):**
+- **Frente de Caixa (PDV):**
   - Tela de checkout (`CaixaView`) com listagem exclusiva de produtos ativos no cardápio.
   - Carrinho dinâmico para adição, remoção e limpeza de itens, com cálculo automático de subtotais e total geral em tempo real (`BigDecimal` formatado em `pt-BR`).
   - Seleção opcional de cliente para vincular ao pedido e finalização com baixa de estoque atômica.
 
-- 📦 **Controle de Estoque Inteligente:**
+- **Controle de Estoque Inteligente:**
   - Configuração de `estoque` atual e `estoqueMinimo` por produto.
   - Alertas visuais diretamente na tabela do cardápio (`ProdutoListView`): destaque em **laranja** para estoque baixo (`estoque <= estoqueMinimo`) e **vermelho em negrito** para estoque zerado.
   - Bloqueio transacional estrito de vendas para produtos inativos (`ProdutoInativoException`) ou com estoque insuficiente (`EstoqueInsuficienteException`).
 
-- 🧾 **Histórico, Detalhes e Cancelamento de Vendas:**
+- **Histórico, Detalhes e Cancelamento de Vendas:**
   - Listagem sincronizada de todas as vendas registradas (`HistoricoVendasView` com `VendaTableModel`).
   - Exibição automática dos itens da venda selecionada (`ItensVendaTableModel`), incluindo quantidade, preço unitário e subtotal.
   - Cancelamento de vendas finalizadas com estorno atômico de estoque dos produtos e transição de status para `CANCELADA`.
 
-- 👥 **Gestão de Clientes:**
+- **Gestão de Clientes:**
   - CRUD completo de clientes (`ClienteListView`, `ClienteFormView`) com validações de negócio no `ClienteService` e atualização reativa da tabela.
 
-- 🌱 **Carga Inicial de Dados (Seed):**
+- **Carga Inicial de Dados (Seed):**
   - População automática e idempotente das categorias e itens de lanchonete na inicialização da aplicação por meio da classe `DataLoader` (inspirada no padrão `CommandLineRunner`) e script `import.sql`.
 
 > **Nota sobre o módulo de Dashboard:** Conforme registrado no histórico do repositório (commit `535d161`), o módulo de Dashboard/métricas agregadas foi removido do escopo desta versão para manter a entrega focada nos fluxos principais de Cardápio, Clientes, Caixa e Histórico de Vendas.
