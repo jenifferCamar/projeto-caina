@@ -105,10 +105,12 @@ public class ProdutoListView extends JPanel {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
                 if (isSelected) {
-                    // No estado selecionado, usa as cores padrão de seleção do Swing (branco no azul)
-                    // Não altera foreground/background para preservar o highlight nativo
+                    // Força cores de seleção do sistema (texto branco no fundo azul de seleção)
+                    c.setForeground(table.getSelectionForeground());
+                    c.setBackground(table.getSelectionBackground());
                 } else {
                     // No estado normal, aplica cores baseadas no estoque
+                    c.setBackground(Color.WHITE); // Garante fundo branco no estado normal
                     Produto produto = tableModel.getProdutoAt(row);
                     if (produto != null) {
                         if (produto.isEstoqueZerado()) {
