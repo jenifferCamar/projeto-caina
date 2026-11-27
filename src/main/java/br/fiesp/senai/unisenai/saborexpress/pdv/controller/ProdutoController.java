@@ -5,7 +5,6 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.ProdutoFormView;
@@ -46,16 +45,6 @@ public class ProdutoController implements ProdutoObserver {
     private final ProdutoListView listView;
     private final ProdutoFormView formView;
     private final ProdutoService service;
-
-    /**
-     * Construtor recebendo o Repositório diretamente (Inversão de Dependência).
-     *
-     * @param mainFrame  Janela principal da aplicação.
-     * @param repository Abstração do repositório de dados.
-     */
-    public ProdutoController(MainFrame mainFrame, ProdutoRepository repository) {
-        this(mainFrame, new ProdutoService(repository));
-    }
 
     /**
      * Construtor recebendo a camada de serviço.

@@ -77,14 +77,6 @@ public class Main {
                 // Instanciação da camada de serviço de negócio e do Observer
                 ProdutoService service = new ProdutoService(produtoRepository, categoriaRepository);
 
-                // Procura e aplica o tema Nimbus entre os temas instalados no Java
-                for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                    if ("Nimbus".equals(info.getName())) {
-                        UIManager.setLookAndFeel(info.getClassName());
-                        break;
-                    }
-                }
-
                 // Instanciação dos repositórios e serviços de Venda
                 VendaRepository vendaRepository = new VendaRepositoryImpl();
                 VendaService vendaService = new VendaService(vendaRepository, service);
@@ -92,11 +84,21 @@ public class Main {
                 // Instanciação da Janela Principal (View com CardLayout)
                 MainFrame mainFrame = new MainFrame(vendaService);
 
-                // Instanciação do Controlador de Caixa conectando View e Model (MVC)
+                // Instanciação dos Controladores conectando View e Model (MVC)
+                ProdutoController produtoController = new ProdutoController(mainFrame, service);
+                produtoController.inicializar();
+
+                ClienteRepository clienteRepository = new ClienteRepositoryImpl();
+                ClienteController clienteController = new ClienteController(mainFrame, clienteRepository);
+                clienteController.inicializar();
+
                 CaixaView caixaView = mainFrame.getCaixaView();
                 HistoricoVendasView historicoView = mainFrame.getHistoricoView();
                 VendaController vendaController = new VendaController(mainFrame, caixaView, historicoView, service, vendaService);
                 vendaController.inicializar();
+
+                // Mostra o Cardápio como tela inicial
+                mainFrame.mostrarLista();
 
                 // Gerenciamento de encerramento de conexões
                 mainFrame.addWindowListener(new WindowAdapter() {
