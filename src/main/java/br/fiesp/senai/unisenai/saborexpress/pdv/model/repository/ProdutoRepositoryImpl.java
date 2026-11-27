@@ -18,6 +18,7 @@ import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementação do {@link ProdutoRepository} utilizando a JPA (Java Persistence
@@ -285,13 +286,13 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
         }
         EntityManager em = emf.createEntityManager();
         try {
+            // Busca todos os produtos ativos e filtra em Java para remover acentos
             String termoNormalizado = normalizarTexto(termo.trim());
-            String jpql = "SELECT p FROM Produto p WHERE p.ativo = true " +
-                    "AND UPPER(FUNCTION('unaccent', p.nome)) LIKE :termo " +
-                    "ORDER BY p.nome ASC";
-            TypedQuery<Produto> query = em.createQuery(jpql, Produto.class);
-            query.setParameter("termo", "%" + termoNormalizado.toUpperCase() + "%");
-            return query.getResultList();
+            List<Produto> todosAtivos = findByAtivoTrueOrderByNomeAsc();
+            
+            return todosAtivos.stream()
+                    .filter(p -> normalizarTexto(p.getNome()).contains(termoNormalizado))
+                    .collect(Collectors.toList());
         } finally {
             if (em.isOpen()) {
                 em.close();
