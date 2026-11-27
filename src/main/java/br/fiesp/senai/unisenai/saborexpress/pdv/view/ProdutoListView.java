@@ -51,7 +51,6 @@ public class ProdutoListView extends JPanel {
     private final JButton btnExcluir;
     private final JButton btnRecarregar;
     private final JTextField txtBusca;
-    private final JButton btnBuscar;
     private final JButton btnLimparFiltro;
 
     public ProdutoListView() {
@@ -97,6 +96,9 @@ public class ProdutoListView extends JPanel {
         tabelaProdutos.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             private static final Color COR_ZERADO = new Color(180, 40, 40); // vermelho escuro
             private static final Color COR_BAIXO = new Color(210, 130, 0);  // laranja
+            // Cores explícitas de seleção (branco no azul padrão do Swing)
+            private static final Color SELECTION_FOREGROUND = Color.WHITE;
+            private static final Color SELECTION_BACKGROUND = new Color(51, 153, 255); // Azul padrão de seleção
 
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -104,7 +106,16 @@ public class ProdutoListView extends JPanel {
                                                            int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-                if (!isSelected) {
+                if (isSelected) {
+                    // Força cores de seleção explícitas: texto branco no azul de seleção
+                    c.setForeground(Color.WHITE);
+                    c.setBackground(new Color(51, 153, 255));
+                    // Garante fonte normal (não negrito) quando selecionado
+                    c.setFont(c.getFont().deriveFont(Font.PLAIN));
+                } else {
+                    // No estado normal, aplica cores baseadas no estoque
+                    c.setBackground(Color.WHITE); // Garante fundo branco no estado normal
+                    c.setFont(c.getFont().deriveFont(Font.PLAIN)); // Fonte normal
                     Produto produto = tableModel.getProdutoAt(row);
                     if (produto != null) {
                         if (produto.isEstoqueZerado()) {
@@ -129,8 +140,17 @@ public class ProdutoListView extends JPanel {
         btnRecarregar.setPreferredSize(new Dimension(110, 30));
         btnRecarregar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
+        // Campo de busca ao lado do botão Recarregar
+        txtBusca = new JTextField();
+        txtBusca.setMinimumSize(new Dimension(150, 30));
+        txtBusca.setPreferredSize(new Dimension(220, 30));
+        txtBusca.setToolTipText("Digite o nome ou código de barras para buscar (busca automática ao digitar)");
+        btnLimparFiltro = new JButton("Limpar Filtro");
+
         JPanel painelAcoesTabela = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
         painelAcoesTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
+        painelAcoesTabela.add(txtBusca);
+        painelAcoesTabela.add(btnLimparFiltro);
         painelAcoesTabela.add(btnRecarregar);
 
         JPanel painelWrapperTabela = new JPanel(new BorderLayout());
@@ -145,37 +165,25 @@ public class ProdutoListView extends JPanel {
         JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
         painelRodape.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        JPanel         painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        // Contador de registros à esquerda
+        JPanel painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         lblTotalRegistros = new JLabel("Total: 0 produto(s)");
         lblTotalRegistros.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        lblTotalRegistros.setPreferredSize(new Dimension(200, 25));
         painelContador.add(lblTotalRegistros);
         painelRodape.add(painelContador, BorderLayout.WEST);
 
+        // Botões de ação à direita
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
 
-        txtBusca = new JTextField();
-        txtBusca.setPreferredSize(new Dimension(180, 30));
-        btnBuscar = new JButton("Buscar");
-        btnBuscar.setPreferredSize(new Dimension(90, 35));
-        btnLimparFiltro = new JButton("Limpar Filtro");
-        btnLimparFiltro.setPreferredSize(new Dimension(110, 35));
-
         btnExcluir = new JButton("Excluir");
-        btnExcluir.setPreferredSize(new Dimension(110, 35));
         btnExcluir.setForeground(new Color(180, 40, 40));
 
         btnEditar = new JButton("Editar");
-        btnEditar.setPreferredSize(new Dimension(110, 35));
 
         btnNovo = new JButton("+ Novo Produto");
-        btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-        painelBotoes.add(txtBusca);
-        painelBotoes.add(btnBuscar);
-        painelBotoes.add(btnLimparFiltro);
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnNovo);
@@ -193,7 +201,7 @@ public class ProdutoListView extends JPanel {
     public void atualizarTabela(List<Produto> produtos) {
         tableModel.setProdutos(produtos);
         int total = (produtos != null) ? produtos.size() : 0;
-        lblTotalRegistros.setText(String.format("Total: %d produto(s)", total));
+        lblTotalRegistros.setText(String.format("Total: %d produto(s) cadastrado(s)", total));
     }
 
     /**
@@ -242,15 +250,15 @@ public class ProdutoListView extends JPanel {
         return txtBusca.getText().trim();
     }
 
-    public JButton getBtnBuscar() {
-        return btnBuscar;
-    }
-
     public JButton getBtnLimparFiltro() {
         return btnLimparFiltro;
     }
 
     public void limparBusca() {
         txtBusca.setText("");
+    }
+
+    public JTextField getTxtBusca() {
+        return txtBusca;
     }
 }

@@ -297,6 +297,17 @@ public class ProdutoService {
         return produtoRepository.findByAtivoTrueAndNomeContainingIgnoreCaseOrderByNomeAsc(termo);
     }
 
+    /**
+     * Busca produtos ativos por termo no nome (busca parcial, case-insensitive, sem acentos).
+     * Exemplo: "agua" encontra "água", "cafe" encontra "café".
+     *
+     * @param termo Termo de busca.
+     * @return Lista de produtos correspondentes.
+     */
+    public List<Produto> buscarPorNomeSemAcento(String termo) {
+        return produtoRepository.findByAtivoTrueAndNomeUnaccentContainingIgnoreCaseOrderByNomeAsc(termo);
+    }
+
     // ==========================================
     // REGRAS DE NEGÓCIO - CATEGORIAS
     // ==========================================

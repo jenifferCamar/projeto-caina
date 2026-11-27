@@ -18,6 +18,7 @@ import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementação do {@link ProdutoRepository} utilizando a JPA (Java Persistence
@@ -276,6 +277,38 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
                 em.close();
             }
         }
+    }
+
+    @Override
+    public List<Produto> findByAtivoTrueAndNomeUnaccentContainingIgnoreCaseOrderByNomeAsc(String termo) {
+        if (termo == null || termo.trim().isEmpty()) {
+            return findByAtivoTrueOrderByNomeAsc();
+        }
+        EntityManager em = emf.createEntityManager();
+        try {
+            // Busca todos os produtos ativos e filtra em Java para remover acentos
+            String termoNormalizado = normalizarTexto(termo.trim());
+            List<Produto> todosAtivos = findByAtivoTrueOrderByNomeAsc();
+            
+            return todosAtivos.stream()
+                    .filter(p -> normalizarTexto(p.getNome()).contains(termoNormalizado))
+                    .collect(Collectors.toList());
+        } finally {
+            if (em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+    /**
+     * Normaliza um texto removendo acentos e convertendo para maiúsculas.
+     * Usado para busca sem acentos.
+     */
+    private String normalizarTexto(String texto) {
+        if (texto == null) return "";
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+                .toUpperCase();
     }
 
     // ==========================================
