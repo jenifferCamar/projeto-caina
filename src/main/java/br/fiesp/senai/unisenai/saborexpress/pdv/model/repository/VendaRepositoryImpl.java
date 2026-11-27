@@ -1,6 +1,7 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.MetricasVendasDTO;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
@@ -12,6 +13,8 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -200,6 +203,75 @@ public class VendaRepositoryImpl implements VendaRepository {
         } catch (Exception e) {
             if (tx.isActive()) tx.rollback();
             throw new RuntimeException("Erro ao cancelar venda: " + e.getMessage(), e);
+        } finally {
+            if (em.isOpen()) em.close();
+        }
+    }
+
+    // ==========================================
+    // CONSULTAS AGREGADAS DE METRICAS
+    // ==========================================
+
+    @Override
+    public Long contarVendasFinalizadas() {
+        return contarVendasFinalizadas(null, null);
+    }
+
+    @Override
+    public Long contarVendasFinalizadas(LocalDateTime inicio, LocalDateTime fim) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT COUNT(v) FROM Venda v WHERE v.status = :status");
+            if (inicio != null && fim != null) {
+                sql.append(" AND v.dataHora BETWEEN :inicio AND :fim");
+            } else if (inicio != null) {
+                sql.append(" AND v.dataHora >= :inicio");
+            } else if (fim != null) {
+                sql.append(" AND v.dataHora <= :fim");
+            }
+            TypedQuery<Long> query = em.createQuery(sql.toString(), Long.class);
+            query.setParameter("status", Venda.STATUS_FINALIZADA);
+            if (inicio != null) {
+                query.setParameter("inicio", inicio);
+            }
+            if (fim != null) {
+                query.setParameter("fim", fim);
+            }
+            return query.getSingleResult();
+        } finally {
+            if (em.isOpen()) em.close();
+        }
+    }
+
+    @Override
+    public BigDecimal somarFaturamentoFinalizado() {
+        return somarFaturamentoFinalizado(null, null);
+    }
+
+    @Override
+    public BigDecimal somarFaturamentoFinalizado(LocalDateTime inicio, LocalDateTime fim) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT SUM(v.total) FROM Venda v WHERE v.status = :status AND v.total IS NOT NULL");
+            if (inicio != null && fim != null) {
+                sql.append(" AND v.dataHora BETWEEN :inicio AND :fim");
+            } else if (inicio != null) {
+                sql.append(" AND v.dataHora >= :inicio");
+            } else if (fim != null) {
+                sql.append(" AND v.dataHora <= :fim");
+            }
+            TypedQuery<BigDecimal> query = em.createQuery(sql.toString(), BigDecimal.class);
+            query.setParameter("status", Venda.STATUS_FINALIZADA);
+            if (inicio != null) {
+                query.setParameter("inicio", inicio);
+            }
+            if (fim != null) {
+                query.setParameter("fim", fim);
+            }
+            BigDecimal resultado = query.getSingleResult();
+            return resultado != null ? resultado : BigDecimal.ZERO;
         } finally {
             if (em.isOpen()) em.close();
         }
