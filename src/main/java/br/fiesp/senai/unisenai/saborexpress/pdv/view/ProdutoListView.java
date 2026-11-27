@@ -141,8 +141,19 @@ public class ProdutoListView extends JPanel {
         btnRecarregar.setPreferredSize(new Dimension(110, 30));
         btnRecarregar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
+        // Campo de busca ao lado do botão Recarregar
+        txtBusca = new JTextField();
+        txtBusca.setMinimumSize(new Dimension(150, 30));
+        txtBusca.setPreferredSize(new Dimension(220, 30));
+        txtBusca.setToolTipText("Digite o nome ou código de barras para buscar");
+        btnBuscar = new JButton("Buscar");
+        btnLimparFiltro = new JButton("Limpar Filtro");
+
         JPanel painelAcoesTabela = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
         painelAcoesTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
+        painelAcoesTabela.add(txtBusca);
+        painelAcoesTabela.add(btnBuscar);
+        painelAcoesTabela.add(btnLimparFiltro);
         painelAcoesTabela.add(btnRecarregar);
 
         JPanel painelWrapperTabela = new JPanel(new BorderLayout());
@@ -167,32 +178,20 @@ public class ProdutoListView extends JPanel {
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
 
-        txtBusca = new JTextField();
-        txtBusca.setPreferredSize(new Dimension(180, 30));
-        btnBuscar = new JButton("Buscar");
-        btnBuscar.setPreferredSize(new Dimension(90, 35));
-        btnLimparFiltro = new JButton("Limpar Filtro");
-        btnLimparFiltro.setPreferredSize(new Dimension(110, 35));
-
         btnExcluir = new JButton("Excluir");
-        btnExcluir.setPreferredSize(new Dimension(110, 35));
         btnExcluir.setForeground(new Color(180, 40, 40));
 
         btnEditar = new JButton("Editar");
-        btnEditar.setPreferredSize(new Dimension(110, 35));
 
         btnNovo = new JButton("+ Novo Produto");
-        btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-        painelBotoes.add(txtBusca);
-        painelBotoes.add(btnBuscar);
-        painelBotoes.add(btnLimparFiltro);
         painelBotoes.add(btnExcluir);
         painelBotoes.add(btnEditar);
         painelBotoes.add(btnNovo);
 
         painelRodape.add(painelBotoes, BorderLayout.EAST);
+        add(painelRodape, BorderLayout.SOUTH);
         add(painelRodape, BorderLayout.SOUTH);
     }
 
