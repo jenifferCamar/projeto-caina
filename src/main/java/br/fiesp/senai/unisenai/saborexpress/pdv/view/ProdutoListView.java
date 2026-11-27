@@ -161,8 +161,6 @@ public class ProdutoListView extends JPanel {
         txtBusca.setToolTipText("Digite o nome ou código de barras para buscar");
         btnBuscar = new JButton("Buscar");
         btnLimparFiltro = new JButton("Limpar Filtro");
-        btnBuscar = new JButton("Buscar");
-        btnLimparFiltro = new JButton("Limpar Filtro");
         painelBusca.add(txtBusca);
         painelBusca.add(btnBuscar);
         painelBusca.add(btnLimparFiltro);
