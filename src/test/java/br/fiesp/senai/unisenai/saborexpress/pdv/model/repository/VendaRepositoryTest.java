@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -152,5 +153,62 @@ class VendaRepositoryTest {
         Venda cancelada = repository.cancelarVenda(finalizada.getId());
         assertEquals(Venda.STATUS_CANCELADA, cancelada.getStatus());
         assertEquals(10, produtoRepository.findById(p.getId()).orElseThrow().getQuantidadeEstoque());
+    }
+
+    // ==========================================
+    // TESTES DE METRICAS DE VENDAS
+    // ==========================================
+
+    private Venda vendaFinalizadaComTotal(String codigoBarras, String nome, BigDecimal preco, Integer quantidade, Integer estoqueInicial, LocalDateTime dataHora) {
+        Produto p = novoProduto(codigoBarras, nome, preco, estoqueInicial);
+        Venda v = new Venda();
+        v.setDataHora(dataHora);
+        v.setStatus(Venda.STATUS_FINALIZADA);
+        v.adicionarItem(new ItemVenda(v, p, quantidade, preco));
+        return repository.finalizarVenda(v);
+    }
+
+    @Test
+    @DisplayName("Deve contar vendas finalizadas sem filtro de periodo")
+    void deveContarVendasFinalizadasSemFiltro() {
+        LocalDateTime ontem = LocalDateTime.now().minusDays(1);
+        LocalDateTime hoje = LocalDateTime.now();
+        vendaFinalizadaComTotal("810", "Venda Ontem", new BigDecimal("20.00"), 1, 10, ontem);
+        vendaFinalizadaComTotal("811", "Venda Hoje", new BigDecimal("30.00"), 1, 10, hoje);
+
+        Long total = repository.contarVendasFinalizadas();
+        assertTrue(total >= 2);
+    }
+
+    @Test
+    @DisplayName("Deve contar vendas finalizadas com filtro de periodo")
+    void deveContarVendasFinalizadasComFiltroPeriodo() {
+        LocalDateTime inicio = LocalDateTime.now().minusDays(1);
+        LocalDateTime fim = LocalDateTime.now().plusDays(1);
+        vendaFinalizadaComTotal("812", "Venda no Periodo", new BigDecimal("15.00"), 1, 10, inicio.plusHours(1));
+
+        Long total = repository.contarVendasFinalizadas(inicio, fim);
+        assertTrue(total >= 1);
+    }
+
+    @Test
+    @DisplayName("Deve somar faturamento finalizado sem filtro de periodo")
+    void deveSomarFaturamentoFinalizadoSemFiltro() {
+        vendaFinalizadaComTotal("813", "Faturamento A", new BigDecimal("10.00"), 2, 10, LocalDateTime.now());
+        vendaFinalizadaComTotal("814", "Faturamento B", new BigDecimal("20.00"), 1, 10, LocalDateTime.now());
+
+        BigDecimal total = repository.somarFaturamentoFinalizado();
+        assertTrue(total.compareTo(BigDecimal.valueOf(40.00)) >= 0);
+    }
+
+    @Test
+    @DisplayName("Deve somar faturamento finalizado com filtro de periodo")
+    void deveSomarFaturamentoFinalizadoComFiltroPeriodo() {
+        LocalDateTime inicio = LocalDateTime.now().minusDays(1);
+        LocalDateTime fim = LocalDateTime.now().plusDays(1);
+        vendaFinalizadaComTotal("815", "Faturamento no Periodo", new BigDecimal("50.00"), 1, 10, inicio.plusHours(1));
+
+        BigDecimal total = repository.somarFaturamentoFinalizado(inicio, fim);
+        assertTrue(total.compareTo(BigDecimal.valueOf(50.00)) >= 0);
     }
 }
