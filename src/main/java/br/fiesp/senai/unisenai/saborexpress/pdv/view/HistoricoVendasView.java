@@ -63,6 +63,7 @@ public class HistoricoVendasView extends JPanel {
 
     // --- Botões ---
     private final JButton btnAtualizar;
+    private final JButton btnCancelarVenda;
     private final JButton btnVoltar;
 
     public HistoricoVendasView() {
@@ -190,8 +191,14 @@ public class HistoricoVendasView extends JPanel {
         btnAtualizar.setPreferredSize(new Dimension(110, 35));
         btnAtualizar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
+        btnCancelarVenda = new JButton("Cancelar Venda");
+        btnCancelarVenda.setPreferredSize(new Dimension(140, 35));
+        btnCancelarVenda.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        btnCancelarVenda.setForeground(new Color(180, 40, 40));
+
         painelBotoes.add(btnVoltar);
         painelBotoes.add(btnAtualizar);
+        painelBotoes.add(btnCancelarVenda);
         painelRodape.add(painelBotoes, BorderLayout.EAST);
 
         add(painelRodape, BorderLayout.SOUTH);
@@ -226,6 +233,15 @@ public class HistoricoVendasView extends JPanel {
      */
     public JButton getBtnAtualizar() {
         return btnAtualizar;
+    }
+
+    /**
+     * Retorna o botão de cancelar venda.
+     *
+     * @return {@link JButton} btnCancelarVenda.
+     */
+    public JButton getBtnCancelarVenda() {
+        return btnCancelarVenda;
     }
 
     /**
