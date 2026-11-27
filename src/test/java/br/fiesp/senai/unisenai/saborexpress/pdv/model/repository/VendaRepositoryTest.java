@@ -134,4 +134,23 @@ class VendaRepositoryTest {
         Optional<Venda> aposExclusao = repository.buscarPorId(salva.getId());
         assertTrue(aposExclusao.isEmpty());
     }
+
+    @Test
+    @DisplayName("Deve cancelar venda finalizada e estornar estoque de forma atomica")
+    void deveCancelarVendaEEstornarEstoque() {
+        Produto p = novoProduto("795", "Refrigerante", new BigDecimal("8.00"), 10);
+        Venda v = new Venda();
+        v.setStatus(Venda.STATUS_FINALIZADA);
+        v.adicionarItem(new ItemVenda(v, p, 3, new BigDecimal("8.00")));
+
+        // Finaliza: estoque cai de 10 para 7
+        Venda finalizada = repository.finalizarVenda(v);
+        assertEquals(Venda.STATUS_FINALIZADA, finalizada.getStatus());
+        assertEquals(7, produtoRepository.findById(p.getId()).orElseThrow().getQuantidadeEstoque());
+
+        // Cancela: estoque volta de 7 para 10
+        Venda cancelada = repository.cancelarVenda(finalizada.getId());
+        assertEquals(Venda.STATUS_CANCELADA, cancelada.getStatus());
+        assertEquals(10, produtoRepository.findById(p.getId()).orElseThrow().getQuantidadeEstoque());
+    }
 }
