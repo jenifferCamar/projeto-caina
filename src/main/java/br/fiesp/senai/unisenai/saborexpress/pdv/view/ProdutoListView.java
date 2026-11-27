@@ -97,6 +97,9 @@ public class ProdutoListView extends JPanel {
         tabelaProdutos.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             private static final Color COR_ZERADO = new Color(180, 40, 40); // vermelho escuro
             private static final Color COR_BAIXO = new Color(210, 130, 0);  // laranja
+            // Cores explícitas de seleção (branco no azul padrão do Swing)
+            private static final Color SELECTION_FOREGROUND = Color.WHITE;
+            private static final Color SELECTION_BACKGROUND = new Color(51, 153, 255); // Azul padrão de seleção
 
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -105,12 +108,15 @@ public class ProdutoListView extends JPanel {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
                 if (isSelected) {
-                    // Força cores de seleção do sistema (texto branco no fundo azul de seleção)
-                    c.setForeground(table.getSelectionForeground());
-                    c.setBackground(table.getSelectionBackground());
+                    // Força cores de seleção explícitas: texto branco no azul de seleção
+                    c.setForeground(Color.WHITE);
+                    c.setBackground(new Color(51, 153, 255));
+                    // Garante fonte normal (não negrito) quando selecionado
+                    c.setFont(c.getFont().deriveFont(Font.PLAIN));
                 } else {
                     // No estado normal, aplica cores baseadas no estoque
                     c.setBackground(Color.WHITE); // Garante fundo branco no estado normal
+                    c.setFont(c.getFont().deriveFont(Font.PLAIN)); // Fonte normal
                     Produto produto = tableModel.getProdutoAt(row);
                     if (produto != null) {
                         if (produto.isEstoqueZerado()) {
