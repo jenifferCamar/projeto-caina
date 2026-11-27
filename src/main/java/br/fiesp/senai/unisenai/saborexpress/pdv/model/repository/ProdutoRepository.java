@@ -1,5 +1,6 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import org.springframework.stereotype.Repository;
 
@@ -88,6 +89,21 @@ public interface ProdutoRepository {
     boolean existsByNomeAndIdNot(String nome, Long id);
 
     /**
+     * Lista todos os produtos ativos.
+     *
+     * @return Lista de produtos ativos.
+     */
+    List<Produto> findByAtivoTrue();
+
+    /**
+     * Lista produtos ativos de uma determinada categoria.
+     *
+     * @param categoria Categoria dos produtos.
+     * @return Lista de produtos ativos da categoria.
+     */
+    List<Produto> findByAtivoTrueAndCategoria(Categoria categoria);
+
+    /**
      * Lista todos os produtos ativos, ordenados alfabeticamente pelo nome.
      *
      * @return Lista de produtos ativos.
@@ -109,4 +125,12 @@ public interface ProdutoRepository {
      * @return Lista de produtos correspondentes.
      */
     List<Produto> findByAtivoTrueAndNomeContainingIgnoreCaseOrderByNomeAsc(String termo);
+
+    /**
+     * Busca produtos ativos cujo nome contém o termo informado (busca parcial, case-insensitive, sem acentos).
+     *
+     * @param termo Termo de busca (ex: "agua" encontra "água").
+     * @return Lista de produtos correspondentes.
+     */
+    List<Produto> findByAtivoTrueAndNomeUnaccentContainingIgnoreCaseOrderByNomeAsc(String termo);
 }

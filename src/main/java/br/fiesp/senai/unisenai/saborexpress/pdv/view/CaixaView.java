@@ -1,12 +1,14 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.util.FormatUtils;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.tablemodel.ProdutoTableModel;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -14,6 +16,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.NumberFormatter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,7 +26,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Visão (View) do Caixa de Vendas do PDV.
@@ -57,7 +62,7 @@ public class CaixaView extends JPanel {
     private final ProdutoTableModel produtosTableModel;
 
     // --- Campos de Adição ao Carrinho ---
-    private final JTextField txtQuantidade;
+    private final JFormattedTextField txtQuantidade;
     private final JButton btnAdicionarCarrinho;
 
     // --- Tabela do Carrinho ---
@@ -127,6 +132,9 @@ public class CaixaView extends JPanel {
         tabelaProdutos.getColumnModel().getColumn(2).setPreferredWidth(250);
         tabelaProdutos.getColumnModel().getColumn(3).setPreferredWidth(100);
         tabelaProdutos.getColumnModel().getColumn(4).setPreferredWidth(80);
+        if (tabelaProdutos.getColumnModel().getColumnCount() > 5) {
+            tabelaProdutos.getColumnModel().getColumn(5).setPreferredWidth(80);
+        }
 
         JScrollPane scrollProdutos = new JScrollPane(tabelaProdutos);
         scrollProdutos.setBorder(BorderFactory.createTitledBorder(" Cardápio Ativo "));
@@ -136,7 +144,14 @@ public class CaixaView extends JPanel {
         JPanel painelAdd = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         JLabel lblQtd = new JLabel("Quantidade:");
         lblQtd.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtQuantidade = new JTextField("1");
+        NumberFormat formatoInteiro = NumberFormat.getIntegerInstance();
+        NumberFormatter formatterQtd = new NumberFormatter(formatoInteiro);
+        formatterQtd.setValueClass(Integer.class);
+        formatterQtd.setAllowsInvalid(true);
+        formatterQtd.setMinimum(1);
+        txtQuantidade = new JFormattedTextField(formatterQtd);
+        txtQuantidade.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        txtQuantidade.setValue(1);
         txtQuantidade.setPreferredSize(new Dimension(60, 30));
         btnAdicionarCarrinho = new JButton("Adicionar ao Carrinho");
         btnAdicionarCarrinho.setPreferredSize(new Dimension(170, 35));
@@ -309,6 +324,15 @@ public class CaixaView extends JPanel {
     }
 
     /**
+     * Atualiza o texto do total parcial exibido no rodapé a partir de BigDecimal.
+     *
+     * @param total Valor total como BigDecimal.
+     */
+    public void atualizarTotal(BigDecimal total) {
+        lblTotal.setText("Total: " + FormatUtils.formatarMoeda(total));
+    }
+
+    /**
      * Retorna o produto selecionado na tabela de produtos disponíveis.
      *
      * @return {@link Produto} selecionado ou {@code null}.
@@ -336,6 +360,10 @@ public class CaixaView extends JPanel {
      * @texto da quantidade.
      */
     public String getQuantidadeTexto() {
+        Object value = txtQuantidade.getValue();
+        if (value instanceof Number) {
+            return String.valueOf(((Number) value).intValue());
+        }
         return txtQuantidade.getText().trim();
     }
 

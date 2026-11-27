@@ -1,5 +1,8 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.util.FormatUtils;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,34 +11,30 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import javax.swing.text.NumberFormatter;
 
 /**
  * Visão (View) do Formulário de Cadastro e Edição de Produtos.
  * <p>
- * <b>Conceito Pedagógico (Padrão MVC - Separação da Camada View):</b>
+ * Padrão MVC - Separação da Camada View:
  * <ul>
- * <li>Esta classe é estritamente responsável pela apresentação gráfica e coleta
- * de dados brutos
- * digitados pelo usuário.</li>
- * <li><b>Não contém:</b> Acesso a banco de dados (JPA/SQL), regras de negócio
- * ou lógica transacional.</li>
- * <li>Os botões e campos de entrada expõem seus ouvintes/ações diretamente ao
- * {@code ProdutoController},
- * preservando o Princípio de Inversão de Controle e Responsabilidade Única
- * (SOLID).</li>
+ * <li>Esta classe é estritamente responsável pela apresentação gráfica e coleta de dados brutos digitados pelo usuário.</li>
+ * <li>Não contém acesso a banco de dados (JPA/SQL), regras de negócio ou lógica transacional.</li>
+ * <li>Os botões e campos de entrada expõem seus ouvintes/ações diretamente ao ProdutoController.</li>
  * </ul>
- *
- * @author Cainã Antunes Silva
  */
 public class ProdutoFormView extends JPanel {
 
@@ -45,8 +44,10 @@ public class ProdutoFormView extends JPanel {
     private final JTextField txtId;
     private final JTextField txtCodigoBarras;
     private final JTextField txtNome;
-    private final JTextField txtPreco;
-    private final JTextField txtQuantidadeEstoque;
+    private final JFormattedTextField txtPreco;
+    private final JFormattedTextField txtQuantidadeEstoque;
+    private final JFormattedTextField txtEstoqueMinimo;
+    private final JCheckBox chkAtivo;
 
     private final JButton btnSalvar;
     private final JButton btnLimpar;
@@ -130,9 +131,14 @@ public class ProdutoFormView extends JPanel {
         gbc.gridy = 3;
         gbc.weightx = 0.0;
         painelCampos.add(new JLabel("Preço Unitário R$ (*):"), gbc);
-        txtPreco = new JTextField();
+        NumberFormat formatoMoeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        NumberFormatter formatterMoeda = new NumberFormatter(formatoMoeda);
+        formatterMoeda.setAllowsInvalid(false);
+        formatterMoeda.setMinimum(BigDecimal.ZERO);
+        txtPreco = new JFormattedTextField(formatterMoeda);
         txtPreco.setPreferredSize(new Dimension(150, 30));
-        txtPreco.setToolTipText("Exemplo: 19.99 (Utilize ponto ou vírgula)");
+        txtPreco.setToolTipText("Exemplo: 19,99");
+        txtPreco.setValue(BigDecimal.ZERO);
         gbc.gridx = 1;
         gbc.gridy = 3;
         gbc.weightx = 1.0;
@@ -143,13 +149,48 @@ public class ProdutoFormView extends JPanel {
         gbc.gridy = 4;
         gbc.weightx = 0.0;
         painelCampos.add(new JLabel("Quantidade Estoque (*):"), gbc);
-        txtQuantidadeEstoque = new JTextField();
+        NumberFormat formatoInteiro = NumberFormat.getIntegerInstance();
+        NumberFormatter formatterInteiro = new NumberFormatter(formatoInteiro);
+        formatterInteiro.setAllowsInvalid(false);
+        formatterInteiro.setMinimum(0);
+        txtQuantidadeEstoque = new JFormattedTextField(formatterInteiro);
         txtQuantidadeEstoque.setPreferredSize(new Dimension(150, 30));
         txtQuantidadeEstoque.setToolTipText("Exemplo: 10 (Número inteiro positivo ou zero)");
+        txtQuantidadeEstoque.setValue(0);
         gbc.gridx = 1;
         gbc.gridy = 4;
         gbc.weightx = 1.0;
         painelCampos.add(txtQuantidadeEstoque, gbc);
+
+        // Campo Estoque Mínimo
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weightx = 0.0;
+        painelCampos.add(new JLabel("Estoque Mínimo (*):"), gbc);
+        NumberFormatter formatterEstoqueMinimo = new NumberFormatter(formatoInteiro);
+        formatterEstoqueMinimo.setAllowsInvalid(false);
+        formatterEstoqueMinimo.setMinimum(0);
+        txtEstoqueMinimo = new JFormattedTextField(formatterEstoqueMinimo);
+        txtEstoqueMinimo.setPreferredSize(new Dimension(150, 30));
+        txtEstoqueMinimo.setToolTipText("Exemplo: 3 (quantidade mínima para alerta de reposição)");
+        txtEstoqueMinimo.setValue(0);
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.weightx = 1.0;
+        painelCampos.add(txtEstoqueMinimo, gbc);
+
+        // Campo Ativo / Inativo
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.weightx = 0.0;
+        painelCampos.add(new JLabel("Status do Produto:"), gbc);
+        chkAtivo = new JCheckBox("Produto Ativo (disponível para vendas no Caixa)");
+        chkAtivo.setSelected(true);
+        chkAtivo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.weightx = 1.0;
+        painelCampos.add(chkAtivo, gbc);
 
         // Painel envelopador para manter o formulário no topo
         JPanel painelEnvelopador = new JPanel(new BorderLayout());
@@ -185,9 +226,9 @@ public class ProdutoFormView extends JPanel {
         this.lblTitulo.setText("Novo Produto - Cadastro");
         this.lblSubtitulo.setText("Preencha todos os campos obrigatórios (*) para persistir no banco de dados.");
         this.btnSalvar.setText("Cadastrar");
+        this.chkAtivo.setSelected(true);
         limparCampos();
     }
-
     /**
      * Carrega uma entidade existente para edição no formulário.
      *
@@ -206,9 +247,10 @@ public class ProdutoFormView extends JPanel {
         this.txtId.setText(String.valueOf(produto.getId()));
         this.txtCodigoBarras.setText(produto.getCodigoBarras() != null ? produto.getCodigoBarras() : "");
         this.txtNome.setText(produto.getNome() != null ? produto.getNome() : "");
-        this.txtPreco.setText(produto.getPreco() != null ? produto.getPreco().toPlainString() : "");
-        this.txtQuantidadeEstoque
-                .setText(produto.getQuantidadeEstoque() != null ? String.valueOf(produto.getQuantidadeEstoque()) : "0");
+        this.txtPreco.setValue(produto.getPreco() != null ? produto.getPreco() : BigDecimal.ZERO);
+        this.txtQuantidadeEstoque.setValue(produto.getQuantidadeEstoque() != null ? produto.getQuantidadeEstoque() : 0);
+        this.txtEstoqueMinimo.setValue(produto.getEstoqueMinimo() != null ? produto.getEstoqueMinimo() : 0);
+        this.chkAtivo.setSelected(produto.isAtivo());
     }
 
     /**
@@ -218,14 +260,24 @@ public class ProdutoFormView extends JPanel {
         this.txtId.setText("[Gerado após salvar]");
         this.txtCodigoBarras.setText("");
         this.txtNome.setText("");
-        this.txtPreco.setText("");
-        this.txtQuantidadeEstoque.setText("");
+        this.txtPreco.setValue(BigDecimal.ZERO);
+        this.txtQuantidadeEstoque.setValue(0);
+        this.txtEstoqueMinimo.setValue(0);
+        this.chkAtivo.setSelected(true);
         this.txtCodigoBarras.requestFocusInWindow();
     }
 
     // ==========================================
     // GETTERS PARA CAMPOS E COMPONENTES
     // ==========================================
+
+    public boolean isAtivoSelecionado() {
+        return chkAtivo.isSelected();
+    }
+
+    public JCheckBox getChkAtivo() {
+        return chkAtivo;
+    }
 
     public Long getProdutoIdAtual() {
         return produtoIdAtual;
@@ -240,11 +292,54 @@ public class ProdutoFormView extends JPanel {
     }
 
     public String getPrecoTexto() {
-        return txtPreco.getText().trim();
+        Object value = txtPreco.getValue();
+        if (value instanceof BigDecimal) {
+            return ((BigDecimal) value).toPlainString();
+        }
+        if (value instanceof Number) {
+            return BigDecimal.valueOf(((Number) value).doubleValue()).toPlainString();
+        }
+        String texto = txtPreco.getText();
+        if (texto != null && !texto.trim().isEmpty()) {
+            try {
+                return FormatUtils.parseBigDecimal(texto).toPlainString();
+            } catch (Exception ignored) {
+                return texto.trim().replace("R$", "").replace(" ", "").replace(".", "").replace(",", ".");
+            }
+        }
+        return "0.00";
     }
 
     public String getQuantidadeEstoqueTexto() {
-        return txtQuantidadeEstoque.getText().trim();
+        Object value = txtQuantidadeEstoque.getValue();
+        if (value instanceof Number) {
+            return String.valueOf(((Number) value).intValue());
+        }
+        String texto = txtQuantidadeEstoque.getText();
+        if (texto != null && !texto.trim().isEmpty()) {
+            try {
+                return String.valueOf(FormatUtils.parseInteiro(texto));
+            } catch (Exception ignored) {
+                return texto.trim();
+            }
+        }
+        return "0";
+    }
+
+    public String getEstoqueMinimoTexto() {
+        Object value = txtEstoqueMinimo.getValue();
+        if (value instanceof Number) {
+            return String.valueOf(((Number) value).intValue());
+        }
+        String texto = txtEstoqueMinimo.getText();
+        if (texto != null && !texto.trim().isEmpty()) {
+            try {
+                return String.valueOf(FormatUtils.parseInteiro(texto));
+            } catch (Exception ignored) {
+                return texto.trim();
+            }
+        }
+        return "0";
     }
 
     public JButton getBtnSalvar() {

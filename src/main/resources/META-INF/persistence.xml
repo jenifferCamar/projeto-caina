@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <persistence xmlns="https://jakarta.ee/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
@@ -11,10 +11,12 @@
         
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         
-<!-- Mapeamento das Entidades de Domínio -->
+        <!-- Mapeamento das Entidades de Domínio -->
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Cliente</class>
+        <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda</class>
+        <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda</class>
         <class>br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda</class>
 
@@ -67,3 +69,4 @@
     </persistence-unit>
 
 </persistence>
+

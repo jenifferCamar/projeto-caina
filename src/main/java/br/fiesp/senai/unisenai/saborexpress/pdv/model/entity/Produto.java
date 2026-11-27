@@ -46,8 +46,8 @@ import java.util.Objects;
 @NamedQueries({
         @NamedQuery(name = "Produto.listarTodos", query = "SELECT p FROM Produto p ORDER BY p.nome ASC"),
         @NamedQuery(name = "Produto.buscarPorCodigoBarras", query = "SELECT p FROM Produto p WHERE p.codigoBarras = :codigoBarras"),
-        @NamedQuery(name = "Produto.listarAtivos", query = "SELECT p FROM Produto p WHERE p.ativo = true ORDER BY p.nome ASC"),
-        @NamedQuery(name = "Produto.listarPorCategoria", query = "SELECT p FROM Produto p WHERE p.categoria.id = :categoriaId AND p.ativo = true ORDER BY p.nome ASC")
+        @NamedQuery(name = "Produto.listarAtivos", query = "SELECT p FROM Produto p WHERE (p.ativo IS NULL OR p.ativo = true) ORDER BY p.nome ASC"),
+        @NamedQuery(name = "Produto.listarPorCategoria", query = "SELECT p FROM Produto p WHERE p.categoria.id = :categoriaId AND (p.ativo IS NULL OR p.ativo = true) ORDER BY p.nome ASC")
 })
 public class Produto implements Serializable {
 
@@ -91,6 +91,11 @@ public class Produto implements Serializable {
     @Min(value = 0, message = "A Quantidade em Estoque não pode ser negativa")
     private Integer estoque;
 
+    @Column(name = "estoque_minimo", nullable = false)
+    @NotNull(message = "O Estoque Mínimo é obrigatório")
+    @Min(value = 0, message = "O Estoque Mínimo não pode ser negativo")
+    private Integer estoqueMinimo = 0;
+
     /**
      * Construtor padrão sem argumentos (exigência da especificação JPA/Hibernate
      * para instanciação via reflexão).
@@ -110,13 +115,14 @@ public class Produto implements Serializable {
      * @param estoque      Quantidade disponível em estoque (não-negativo).
      */
     public Produto(String codigoBarras, String nome, String descricao, BigDecimal preco,
-                   Categoria categoria, Integer estoque) {
+                   Categoria categoria, Integer estoque, Integer estoqueMinimo) {
         this.codigoBarras = codigoBarras;
         this.nome = nome;
         this.descricao = descricao;
         this.preco = preco;
         this.categoria = categoria;
         this.estoque = estoque;
+        this.estoqueMinimo = (estoqueMinimo != null) ? estoqueMinimo : 0;
     }
 
     /**
@@ -132,10 +138,27 @@ public class Produto implements Serializable {
      * @param estoque      Quantidade em estoque.
      */
     public Produto(Long id, String codigoBarras, String nome, String descricao, BigDecimal preco,
-                   Categoria categoria, Boolean ativo, Integer estoque) {
-        this(codigoBarras, nome, descricao, preco, categoria, estoque);
+                   Categoria categoria, Boolean ativo, Integer estoque, Integer estoqueMinimo) {
+        this(codigoBarras, nome, descricao, preco, categoria, estoque, estoqueMinimo);
         this.id = id;
-        this.ativo = ativo;
+        this.ativo = (ativo != null) ? ativo : Boolean.TRUE;
+    }
+
+    public Produto(String codigoBarras, String nome, String descricao, BigDecimal preco,
+                   Categoria categoria, Boolean ativo, Integer estoque, Integer estoqueMinimo) {
+        this(codigoBarras, nome, descricao, preco, categoria, estoque, estoqueMinimo);
+        this.ativo = (ativo != null) ? ativo : Boolean.TRUE;
+    }
+
+    @jakarta.persistence.PrePersist
+    @jakarta.persistence.PreUpdate
+    public void prePersist() {
+        if (this.ativo == null) {
+            this.ativo = Boolean.TRUE;
+        }
+        if (this.estoqueMinimo == null) {
+            this.estoqueMinimo = 0;
+        }
     }
 
     // ==========================================
@@ -148,7 +171,7 @@ public class Produto implements Serializable {
      */
     @Deprecated
     public Produto(String codigoBarras, String nome, BigDecimal preco, Integer estoque) {
-        this(codigoBarras, nome, "", preco, null, estoque);
+        this(codigoBarras, nome, "", preco, null, estoque, 0);
     }
 
     /**
@@ -214,11 +237,15 @@ public class Produto implements Serializable {
     }
 
     public Boolean getAtivo() {
-        return ativo;
+        return (ativo != null) ? ativo : Boolean.TRUE;
     }
 
     public void setAtivo(Boolean ativo) {
-        this.ativo = ativo;
+        this.ativo = (ativo != null) ? ativo : Boolean.TRUE;
+    }
+
+    public boolean isAtivo() {
+        return Boolean.TRUE.equals(this.getAtivo());
     }
 
     public Integer getEstoque() {
@@ -227,6 +254,37 @@ public class Produto implements Serializable {
 
     public void setEstoque(Integer estoque) {
         this.estoque = estoque;
+    }
+
+    public Integer getEstoqueMinimo() {
+        return (estoqueMinimo != null) ? estoqueMinimo : 0;
+    }
+
+    public void setEstoqueMinimo(Integer estoqueMinimo) {
+        this.estoqueMinimo = (estoqueMinimo != null) ? estoqueMinimo : 0;
+    }
+
+    /**
+     * Verifica se o estoque atual está abaixo ou igual ao estoque mínimo definido.
+     *
+     * @return {@code true} se o estoque estiver baixo (estoque <= estoqueMinimo),
+     *         {@code false} caso contrário.
+     */
+    public boolean isEstoqueBaixo() {
+        Integer estoqueAtual = (estoque != null) ? estoque : 0;
+        Integer minimo = (estoqueMinimo != null) ? estoqueMinimo : 0;
+        return estoqueAtual <= minimo;
+    }
+
+    /**
+     * Verifica se o estoque atual está zerado.
+     *
+     * @return {@code true} se o estoque for igual a zero, {@code false} caso
+     *         contrário.
+     */
+    public boolean isEstoqueZerado() {
+        Integer estoqueAtual = (estoque != null) ? estoque : 0;
+        return estoqueAtual == 0;
     }
 
     /**
@@ -281,6 +339,7 @@ public class Produto implements Serializable {
                 ", categoria=" + (categoria != null ? categoria.getNome() : "null") +
                 ", ativo=" + ativo +
                 ", estoque=" + estoque +
+                ", estoqueMinimo=" + estoqueMinimo +
                 '}';
     }
 }

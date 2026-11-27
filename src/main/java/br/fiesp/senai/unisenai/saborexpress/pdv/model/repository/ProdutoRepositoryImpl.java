@@ -1,6 +1,9 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -15,6 +18,7 @@ import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementação do {@link ProdutoRepository} utilizando a JPA (Java Persistence
@@ -79,7 +83,7 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw new RuntimeException("Erro ao persistir produto: " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao persistir produto.", e);
         } finally {
             if (em.isOpen()) {
                 em.close();
@@ -125,7 +129,7 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
             tx.begin();
             Produto produto = em.find(Produto.class, id);
             if (produto == null) {
-                throw new IllegalArgumentException("Produto não encontrado para o ID: " + id);
+                throw new BusinessException("Produto não encontrado para o ID: " + id);
             }
             em.remove(produto);
             tx.commit();
@@ -133,7 +137,7 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw new RuntimeException("Erro ao excluir produto ID " + id + ": " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao excluir produto.", e);
         } finally {
             if (em.isOpen()) {
                 em.close();
@@ -208,6 +212,19 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
     }
 
     @Override
+    public List<Produto> findByAtivoTrue() {
+        return findByAtivoTrueOrderByNomeAsc();
+    }
+
+    @Override
+    public List<Produto> findByAtivoTrueAndCategoria(Categoria categoria) {
+        if (categoria == null || categoria.getId() == null) {
+            return List.of();
+        }
+        return findByCategoriaIdAndAtivoTrueOrderByNomeAsc(categoria.getId());
+    }
+
+    @Override
     public List<Produto> findByAtivoTrueOrderByNomeAsc() {
         EntityManager em = emf.createEntityManager();
         try {
@@ -260,6 +277,38 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
                 em.close();
             }
         }
+    }
+
+    @Override
+    public List<Produto> findByAtivoTrueAndNomeUnaccentContainingIgnoreCaseOrderByNomeAsc(String termo) {
+        if (termo == null || termo.trim().isEmpty()) {
+            return findByAtivoTrueOrderByNomeAsc();
+        }
+        EntityManager em = emf.createEntityManager();
+        try {
+            // Busca todos os produtos ativos e filtra em Java para remover acentos
+            String termoNormalizado = normalizarTexto(termo.trim());
+            List<Produto> todosAtivos = findByAtivoTrueOrderByNomeAsc();
+            
+            return todosAtivos.stream()
+                    .filter(p -> normalizarTexto(p.getNome()).contains(termoNormalizado))
+                    .collect(Collectors.toList());
+        } finally {
+            if (em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+    /**
+     * Normaliza um texto removendo acentos e convertendo para maiúsculas.
+     * Usado para busca sem acentos.
+     */
+    private String normalizarTexto(String texto) {
+        if (texto == null) return "";
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+                .toUpperCase();
     }
 
     // ==========================================

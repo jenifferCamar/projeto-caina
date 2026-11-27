@@ -1,6 +1,9 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.model.repository;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Cliente;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -39,7 +42,7 @@ public class ClienteRepositoryImpl implements ClienteRepository {
             return cliente;
         } catch (Exception e) {
             if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao persistir cliente: " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao persistir cliente.", e);
         } finally {
             if (em.isOpen()) em.close();
         }
@@ -49,7 +52,7 @@ public class ClienteRepositoryImpl implements ClienteRepository {
     public Cliente atualizar(Cliente cliente) {
         Objects.requireNonNull(cliente, "Cliente não pode ser nulo.");
         if (cliente.getId() == null) {
-            throw new IllegalArgumentException("Cliente a ser atualizado deve possuir um ID.");
+            throw new ValidationException("Cliente a ser atualizado deve possuir um ID.");
         }
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -60,7 +63,7 @@ public class ClienteRepositoryImpl implements ClienteRepository {
             return mesclado;
         } catch (Exception e) {
             if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao atualizar cliente: " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao atualizar cliente.", e);
         } finally {
             if (em.isOpen()) em.close();
         }
@@ -75,13 +78,13 @@ public class ClienteRepositoryImpl implements ClienteRepository {
             tx.begin();
             Cliente cliente = em.find(Cliente.class, id);
             if (cliente == null) {
-                throw new IllegalArgumentException("Cliente não encontrado para o ID: " + id);
+                throw new BusinessException("Cliente não encontrado para o ID: " + id);
             }
             em.remove(cliente);
             tx.commit();
         } catch (Exception e) {
             if (tx.isActive()) tx.rollback();
-            throw new RuntimeException("Erro ao excluir cliente ID " + id + ": " + e.getMessage(), e);
+            throw new PersistenceException("Falha ao excluir cliente.", e);
         } finally {
             if (em.isOpen()) em.close();
         }
@@ -124,6 +127,9 @@ public class ClienteRepositoryImpl implements ClienteRepository {
             if (em.isOpen()) em.close();
         }
     }
+
+    @Override
+    public List<Cliente> listarTodos() {
         EntityManager em = emf.createEntityManager();
         try {
             TypedQuery<Cliente> query = em.createNamedQuery("Cliente.listarTodos", Cliente.class);

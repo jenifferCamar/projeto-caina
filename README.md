@@ -1,411 +1,388 @@
-![senai_logo](./logo_unisenai.png)
+![Sabor Express Lanchonete](./2.png)
 
-# PDV-Swing-JPA: Persistência de Dados com Frameworks de Interface Gráfica
+<h1 align="center">Sabor Express Lanchonete — Sabor Express PDV</h1>
 
-> **Plano de Aula & Projeto Didático de Referência para Ensino Superior**  
-> **Docente:** Prof. Cainã Antunes Silva  
-> **Disciplina:** Técnicas de Programação II  
-> **Tema da Aula:** Persistência de dados utilizando frameworks de interface gráfica  
-> **Duração:** 50 minutos  
+<p align="center">
+  <strong>Sistema Desktop de Ponto de Venda (PDV) e Gestão para Lanchonetes e Fast-Food</strong>
+</p>
 
----
-
-## 1. Identificação e Contextualização do Plano de Aula
-
-Este projeto materializa a condução de uma aula teórico-prática de **50 minutos**, integrando a camada de apresentação desktop em **Java Swing** a um mecanismo robusto de persistência relacional com **JPA 3.1 / Hibernate 6** e banco embutido **H2 Database**. O desenvolvimento baseia-se em padrões consagrados de engenharia de software (**MVC, Observer, Repository e Inversão de Controle**), garantindo separação rigorosa de responsabilidades, reatividade de interface gráfica e segurança da informação.
-
-### 1.1. Pré-Requisitos Curriculares
-Para acompanhar esta aula, considera-se que os estudantes dominam competências consolidadas em semestres anteriores e em tópicos inaugurais desta disciplina:
-- **Técnicas de Programação I (2º Semestre):** Conceitos fundamentais de Programação Orientada a Objetos (classes, encapsulamento, herança, polimorfismo, contratos de interface), tratamento de exceções e introdução à construção de interfaces gráficas.
-- **Banco de Dados Relacional (2º Semestre):** Modelagem conceitual, lógica e física; integridade referencial e manipulação de dados com linguagem SQL (DDL e DML).
-- **Técnicas de Programação II (Aulas Anteriores):** Fundamentos dos padrões de projeto GoF (criacionais, estruturais e comportamentais) e introdução aos padrões arquiteturais de interface com usuário (MVC, MVP e MVVM).
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17%20(LTS)-orange?logo=openjdk" alt="Java 17" />
+  <img src="https://img.shields.io/badge/UI-Java%20Swing%20%2B%20FlatLaf%203.4.1-blue" alt="Java Swing + FlatLaf" />
+  <img src="https://img.shields.io/badge/ORM-JPA%203.1%20%2F%20Hibernate%206.4-59666C?logo=hibernate" alt="JPA / Hibernate" />
+  <img src="https://img.shields.io/badge/Spring%20Data%20JPA-3.2.0-6DB33F?logo=spring" alt="Spring Data JPA" />
+  <img src="https://img.shields.io/badge/Database-H2%202.2%20Embedded-1E88E5" alt="H2 Database" />
+  <img src="https://img.shields.io/badge/Build-Maven%20Wrapper-C71A36?logo=apachemaven" alt="Maven" />
+  <img src="https://img.shields.io/badge/Tests-JUnit%205-25A162?logo=junit5" alt="JUnit 5" />
+</p>
 
 ---
 
-## 2. Objetivos de Aprendizagem
+## 1. Visão Geral e Funcionalidades
 
-Ao término desta aula de 50 minutos, os discentes deverão atingir os seguintes objetivos educacionais:
+O **Sabor Express PDV** é uma aplicação desktop desenvolvida para atender às necessidades operacionais de **lanchonetes e estabelecimentos de fast-food**, oferecendo controle de cardápio, frente de caixa, gerenciamento de clientes, controle de estoque e histórico de vendas com cancelamento e estorno transacional.
 
-### 2.1. Objetivos Cognitivos (Saber)
-- **Compreender** como frameworks de interface gráfica orquestram a persistência de dados por meio da Inversão de Controle (*Inversion of Control* / *Hollywood Principle*) e da arquitetura orientada a eventos.
-- **Identificar** o papel e as vantagens das ferramentas de Mapeamento Objeto-Relacional (ORM) na resolução do descompasso de impedância (*impedance mismatch*) e na prevenção de vulnerabilidades de injeção de SQL (*SQL Injection*).
-- **Reconhecer** a aplicação prática dos padrões GoF *Observer* e dos padrões corporativos *MVC* e *Repository* em arquiteturas cliente desktop.
+### Módulos Entregues
 
-### 2.2. Objetivos Práticos / Procedimentais (Saber Fazer)
-- **Conectar** a camada de apresentação visual construída em Java Swing a um repositório de dados mediado por JPA/Hibernate e banco de dados H2.
-- **Implementar** a sincronização reativa de dados entre modelos de tabela (`AbstractTableModel`) e componentes visuais (`JTable`) utilizando eventos desacoplados do padrão *Observer*.
+- **Gestão de Cardápio com Categorias:**
+  - Organização lógica dos itens em categorias (`Lanche`, `Bebida`, `Acompanhamento` e `Sobremesa`).
+  - Cadastro, edição, ativação/inativação (`ativo`) e remoção de produtos (`ProdutoListView`, `ProdutoFormView`).
+  - Busca dinâmica com *debounce* (1,5 s) e normalização sem acentos, além de filtro por texto/código de barras.
 
-### 2.3. Objetivos Atitudinais (Ser / Agir)
-- **Demonstrar pensamento crítico** na seleção e estruturação de camadas de software, valorizando boas práticas de código limpo, desacoplamento arquitetural e segurança da informação no ciclo de vida dos dados corporativos.
+- **Frente de Caixa (PDV):**
+  - Tela de checkout (`CaixaView`) com listagem exclusiva de produtos ativos no cardápio.
+  - Carrinho dinâmico para adição, remoção e limpeza de itens, com cálculo automático de subtotais e total geral em tempo real (`BigDecimal` formatado em `pt-BR`).
+  - Seleção opcional de cliente para vincular ao pedido e finalização com baixa de estoque atômica.
 
----
+- **Controle de Estoque Inteligente:**
+  - Configuração de `estoque` atual e `estoqueMinimo` por produto.
+  - Alertas visuais diretamente na tabela do cardápio (`ProdutoListView`): destaque em **laranja** para estoque baixo (`estoque <= estoqueMinimo`) e **vermelho em negrito** para estoque zerado.
+  - Bloqueio transacional estrito de vendas para produtos inativos (`ProdutoInativoException`) ou com estoque insuficiente (`EstoqueInsuficienteException`).
 
-## 3. Conteúdo Programático
+- **Histórico, Detalhes e Cancelamento de Vendas:**
+  - Listagem sincronizada de todas as vendas registradas (`HistoricoVendasView` com `VendaTableModel`).
+  - Exibição automática dos itens da venda selecionada (`ItensVendaTableModel`), incluindo quantidade, preço unitário e subtotal.
+  - Cancelamento de vendas finalizadas com estorno atômico de estoque dos produtos e transição de status para `CANCELADA`.
 
-1. **Contexto de Persistência em Aplicações Gráficas:** A ação do usuário como gatilho do ciclo de vida dos dados; Inversão de Controle (IoC) em frameworks de GUI.
-2. **Padrão Arquitetural MVC e Desacoplamento:** Fronteiras e contratos entre visualização (`View`), orquestração (`Controller`) e dados/regras de domínio (`Model`).
-3. **Padrões de Projeto Aplicados ao Framework e à Persistência:**
-   - **Observer (GoF):** `ActionListener` (captura na GUI) e `ProdutoObserver` / `fireTableDataChanged` (sincronização reativa de tela).
-   - **Repository:** Abstração da coleção de entidades em memória e isolamento das operações de banco de dados.
-4. **Camada ORM (JPA/Hibernate) & Banco Embutido:** Mapeamento declarativo de entidades (`@Entity`, `@Table`, `@Id`), controle transacional atômico (`commit`/`rollback`) e execução segura de transações sobre o H2 Database.
-5. **Estudo de Caso Norteador:** Apresentação arquitetural e de código do módulo de Cadastro e Gestão de Produtos (Módulo PDV).
+- **Gestão de Clientes:**
+  - CRUD completo de clientes (`ClienteListView`, `ClienteFormView`) com validações de negócio no `ClienteService` e atualização reativa da tabela.
 
----
+- **Carga Inicial de Dados (Seed):**
+  - População automática e idempotente das categorias e itens de lanchonete na inicialização da aplicação por meio da classe `DataLoader` (inspirada no padrão `CommandLineRunner`) e script `import.sql`.
 
-## 4. Estratégias Pedagógicas e Metodologia
-
-A condução didática fundamenta-se na articulação entre o **Estudo de Caso Norteador**, a **Demonstração Conceitual Dirigida** e a **Aprendizagem Baseada em Projetos (PBL - Project-Based Learning)**:
-
-- **Contextualização e Situação-Problema (Abertura):** A aula parte de uma demanda real do mercado de trabalho — o gerenciamento de retaguarda de produtos em um Ponto de Venda (PDV) — para instigar a reflexão sobre os vícios clássicos da programação desktop: mistura de comandos SQL dentro de eventos de clique de botões (`JButton`), telas que congelam e ausência de tratamento de transações.
-- **Demonstração Conceitual Dirigida (Desenvolvimento):** Utilização do miniprojeto funcional como fio condutor para desconstruir e analisar trechos de código em conjunto com os fundamentos teóricos que eles materializam (arquitetura MVC, padrões GoF e ciclo de persistência com ORM).
-- **Engajamento Ativo via PBL (Próximos Passos):** Lançamento de um desafio de desenvolvimento prático a ser executado em equipe nas aulas subsequentes, utilizando o repositório-base disponibilizado no GitHub como matriz inicial para a expansão de um PDV setorial completo.
+> **Nota sobre o módulo de Dashboard:** Conforme registrado no histórico do repositório (commit `535d161`), o módulo de Dashboard/métricas agregadas foi removido do escopo desta versão para manter a entrega focada nos fluxos principais de Cardápio, Clientes, Caixa e Histórico de Vendas.
 
 ---
 
-## 5. Diagramas Arquiteturais (Mermaid)
+## 2. Arquitetura e Decisões de Design
 
-### 5.1. Visão Geral da Arquitetura em Camadas (MVC Puro)
+O projeto aplica uma arquitetura em camadas alinhada ao padrão **MVC (Model-View-Controller)**, combinada com **Repository**, **Service Layer**, **Observer (GoF)** e **Pure Dependency Injection (Composition Root)** na classe `Main`.
+
+### Separação de Responsabilidades (MVC + Camadas)
+
+- **View (`view/` e `view/tablemodel/`):**
+  - Telas construídas em **Java Swing** com tema moderno **FlatLaf** (`FlatLightLaf`) e navegação via `CardLayout` no `MainFrame` (`Sabor Express PDV - Gestão de Lanchonete`).
+  - As Views são estritamente passivas quanto a regras de negócio e persistência: **não acessam repositórios, `EntityManager` ou SQL diretamente**.
+- **Controller (`controller/`):**
+  - `ProdutoController`, `ClienteController` e `VendaController` atuam como mediadores entre Views e Services, capturando eventos da interface, validando entradas básicas e exibindo feedbacks amigáveis via `JOptionPane`.
+- **Service (`model/service/`):**
+  - `ProdutoService`, `ClienteService` e `VendaService` concentram as regras de negócio, validações de domínio (ex.: estoque suficiente, produto ativo, integridade de cliente) e coordenação de observadores.
+  - Exceções de domínio dedicadas (`BusinessException`, `ValidationException`, `EstoqueInsuficienteException`, `ProdutoInativoException`, `PersistenceException`) garantem tratamento claro sem expor detalhes internos de banco.
+- **Repository (`model/repository/`):**
+  - Interfaces e implementações JPA (`*RepositoryImpl`) isolam completamente o acesso ao `EntityManager` obtido via `JPAUtil`.
+  - Todas as operações de escrita utilizam controle explícito de transação (`begin`, `commit`, `rollback` em caso de falha), garantindo atomicidade na finalização e no cancelamento de vendas.
+  - Nenhuma instrução SQL é concatenada manualmente: todas as consultas utilizam **JPA / Hibernate** com `NamedQuery` e parâmetros nomeados.
+
+### Bootstrap e Injeção de Dependências
+
+- A classe `Main` atua como **Composition Root**, instanciando os repositórios, executando o `DataLoader` (padrão *CommandLineRunner* para seed idempotente), construindo os serviços e conectando os controladores ao `MainFrame` dentro da **Event Dispatch Thread (EDT)**.
+- O `pom.xml` inclui `spring-data-jpa` (`3.2.0`) e `hibernate-core` (`6.4.4.Final`) sobre `jakarta.persistence-api` (`3.1.0`), mantendo o ciclo de vida JPA enxuto para desktop via `RESOURCE_LOCAL` em `persistence.xml`.
+
+### Padrão Observer e Thread-Safety no Swing (EDT)
+
+Para manter todas as telas sincronizadas após cadastros, edições, vendas ou cancelamentos:
+
+- Os serviços mantêm listas de observadores (`ProdutoObserver`, `VendaObserver`, `ClienteObserver`).
+- Após concluir operações que alteram o estado persistido, o serviço dispara `notificarObservadores()`.
+- O despacho para a interface gráfica é sempre encapsulado em `SwingUtilities.invokeLater(...)`, garantindo que a atualização dos `TableModel`s (`ProdutoTableModel`, `VendaTableModel`, `ClienteTableModel`) e componentes Swing ocorra com segurança na **Event Dispatch Thread (EDT)**.
+
+---
+
+## 3. Pré-requisitos de Ambiente
+
+Certifique-se de ter instalado e configurado no ambiente de desenvolvimento:
+
+- **Java Development Kit (JDK) 17 (LTS)** ou superior compatível, com a variável de ambiente `JAVA_HOME` configurada e `java` disponível no `PATH`.
+- **Maven Wrapper** (`mvnw.cmd` no Windows / `mvnw` no Linux e macOS) já incluído no repositório — dispensa instalação prévia do Maven (ou utilize Maven `3.8+` se preferir).
+- **Git** para clonagem e versionamento.
+- **Sistemas Operacionais Suportados:** Windows, Linux e macOS (qualquer ambiente com suporte gráfico para Java Swing).
+
+---
+
+## 4. Instruções Passo a Passo de Execução
+
+### 4.1. Clonar o Repositório
+
+```bash
+git clone https://github.com/jenifferCamar/projeto-caina.git
+cd projeto-caina
+```
+
+### 4.2. Executar os Testes Automatizados
+
+Antes de subir a aplicação, você pode validar a suíte de testes JUnit 5 (executada em banco H2 em memória `pdv-test-pu`):
+
+**Windows (PowerShell / CMD):**
+
+```powershell
+.\mvnw.cmd test
+```
+
+**Linux / macOS:**
+
+```bash
+./mvnw test
+```
+
+### 4.3. Compilar e Executar via Maven Wrapper
+
+**Windows (PowerShell / CMD):**
+
+```powershell
+.\mvnw.cmd compile exec:java -Dexec.mainClass="br.fiesp.senai.unisenai.saborexpress.pdv.Main"
+```
+
+**Linux / macOS:**
+
+```bash
+./mvnw compile exec:java -Dexec.mainClass="br.fiesp.senai.unisenai.saborexpress.pdv.Main"
+```
+
+> **Dica:** Como a `mainClass` já está configurada no `exec-maven-plugin` dentro do `pom.xml`, `.\mvnw.cmd exec:java` (ou `./mvnw exec:java`) também inicia o sistema diretamente após a compilação.
+
+### 4.4. Empacotar e Executar via JAR
+
+O build Maven gera o JAR executável em `target/` e copia todas as dependências para `target/lib/` via `maven-dependency-plugin`:
+
+**Windows (PowerShell / CMD):**
+
+```powershell
+.\mvnw.cmd clean package
+java -jar target/exemplo_persistencia_JavaSwing-1.0.0.jar
+```
+
+**Linux / macOS:**
+
+```bash
+./mvnw clean package
+java -jar target/exemplo_persistencia_JavaSwing-1.0.0.jar
+```
+
+### 4.5. Importar e Rodar por IDEs
+
+- **IntelliJ IDEA:** `File` → `Open...` → selecione o arquivo `pom.xml` (abrir como Projeto Maven) → aguarde o sync e execute o método `main` em `src/main/java/br/fiesp/senai/unisenai/saborexpress/pdv/Main.java`.
+- **Eclipse:** `File` → `Import...` → `Maven` → `Existing Maven Projects` → selecione a pasta raiz do repositório → execute `Main.java` como `Java Application`.
+- **VS Code:** Abra a pasta do repositório com a extensão **Extension Pack for Java** instalada → aguarde o carregamento do projeto Maven e clique em `Run` acima do método `main` em `Main.java`.
+
+---
+
+## 5. Banco de Dados H2
+
+A aplicação utiliza o **H2 Database (`2.2.224`)** em modo embutido, dispensando instalação externa de SGBD.
+
+### Configuração Principal (`pdv-pu`)
+
+Definida em [`src/main/resources/META-INF/persistence.xml`](src/main/resources/META-INF/persistence.xml):
+
+| Propriedade | Valor |
+|---|---|
+| **Unidade de Persistência** | `pdv-pu` (`RESOURCE_LOCAL`) |
+| **Driver JDBC** | `org.h2.Driver` |
+| **URL JDBC** | `jdbc:h2:./data/pdv_db;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE` |
+| **Usuário** | `sa` |
+| **Senha** | *(vazia)* |
+| **Estratégia DDL (`hbm2ddl.auto`)** | `update` |
+| **Script Inicial** | `import.sql` |
+
+- Os dados são persistidos localmente na pasta `./data/` (arquivos `pdv_db.mv.db` e auxiliares).
+- A flag `AUTO_SERVER=TRUE` permite conectar ferramentas externas (como **DBeaver** ou **H2 Console** standalone) utilizando a mesma URL JDBC enquanto a aplicação está em execução.
+- Para os testes automatizados, utiliza-se a unidade `pdv-test-pu` com banco em memória (`jdbc:h2:mem:pdv_test_db;DB_CLOSE_DELAY=-1`) e `hibernate.hbm2ddl.auto=create-drop`.
+
+> **Resetando o banco local:** Caso deseje recriar a base do zero (por exemplo, após alterações de schema), encerre a aplicação e remova os arquivos `./data/pdv_db*` antes de iniciar novamente.
+
+---
+
+## 6. Estrutura de Pastas e Organização do Código
+
+```text
+projeto-caina/
+├── 2.png                                      # Logo oficial Sabor Express Lanchonete
+├── pom.xml                                    # Dependências e plugins Maven (Java 17)
+├── mvnw / mvnw.cmd                            # Maven Wrapper (Linux/macOS e Windows)
+├── CONTRIBUTING.md                            # Regras de Gitflow e Conventional Commits
+├── PLANEJAMENTO_PDV_LANCHES.md                # Planejamento de trilhas e cards do PBL
+└── src/
+    ├── main/
+    │   ├── java/br/fiesp/senai/unisenai/saborexpress/pdv/
+    │   │   ├── Main.java                      # Composition Root, Look&Feel (FlatLaf) e Bootstrap EDT
+    │   │   ├── config/
+    │   │   │   └── DataLoader.java            # Carga inicial idempotente de categorias e cardápio
+    │   │   ├── controller/                    # Orquestração MVC entre Views e Services
+    │   │   │   ├── ClienteController.java
+    │   │   │   ├── ProdutoController.java
+    │   │   │   └── VendaController.java
+    │   │   ├── model/
+    │   │   │   ├── entity/                    # Entidades JPA e objetos de domínio
+    │   │   │   │   ├── Categoria.java
+    │   │   │   │   ├── Cliente.java
+    │   │   │   │   ├── ItemCarrinho.java
+    │   │   │   │   ├── ItemVenda.java
+    │   │   │   │   ├── Produto.java
+    │   │   │   │   └── Venda.java
+    │   │   │   ├── exception/                 # Exceções de negócio, validação e persistência
+    │   │   │   │   ├── BusinessException.java
+    │   │   │   │   ├── EstoqueInsuficienteException.java
+    │   │   │   │   ├── PersistenceException.java
+    │   │   │   │   ├── ProdutoInativoException.java
+    │   │   │   │   └── ValidationException.java
+    │   │   │   ├── observer/                  # Interfaces Observer para reatividade na UI
+    │   │   │   │   ├── ClienteObserver.java
+    │   │   │   │   ├── ProdutoObserver.java
+    │   │   │   │   └── VendaObserver.java
+    │   │   │   ├── repository/                # Interfaces e implementações JPA (commit/rollback)
+    │   │   │   │   ├── CategoriaRepository.java / CategoriaRepositoryImpl.java
+    │   │   │   │   ├── ClienteRepository.java / ClienteRepositoryImpl.java
+    │   │   │   │   ├── ProdutoRepository.java / ProdutoRepositoryImpl.java
+    │   │   │   │   └── VendaRepository.java / VendaRepositoryImpl.java
+    │   │   │   └── service/                   # Regras de negócio e notificação de observers
+    │   │   │       ├── ClienteService.java
+    │   │   │       ├── ProdutoService.java
+    │   │   │       └── VendaService.java
+    │   │   ├── util/
+    │   │   │   ├── FormatUtils.java           # Formatação de moeda (pt-BR) e máscaras
+    │   │   │   └── JPAUtil.java               # Singleton EntityManagerFactory (pdv-pu)
+    │   │   └── view/                          # Telas Java Swing (desacopladas de persistência)
+    │   │       ├── MainFrame.java             # Janela principal com CardLayout e menu
+    │   │       ├── ProdutoListView.java / ProdutoFormView.java
+    │   │       ├── ClienteListView.java / ClienteFormView.java
+    │   │       ├── CaixaView.java
+    │   │       ├── HistoricoVendasView.java
+    │   │       └── tablemodel/                # TableModels reativos para JTable
+    │   │           ├── ClienteTableModel.java
+    │   │           ├── ItensVendaTableModel.java
+    │   │           ├── ProdutoTableModel.java
+    │   │           └── VendaTableModel.java
+    │   └── resources/
+    │       ├── import.sql                     # Script SQL idempotente para H2
+    │       └── META-INF/persistence.xml       # Unidades de persistência (pdv-pu / pdv-test-pu)
+    └── test/
+        └── java/br/fiesp/senai/unisenai/saborexpress/pdv/model/
+            ├── repository/                    # Testes de integração JPA/H2
+            │   ├── ClienteRepositoryTest.java
+            │   ├── ProdutoRepositoryTest.java
+            │   └── VendaRepositoryTest.java
+            └── service/                       # Testes de regras de negócio e cancelamento
+                ├── ClienteServiceTest.java
+                ├── ProdutoServiceTest.java
+                ├── VendaServiceCancelamentoTest.java
+                └── VendaServiceTest.java
+```
+
+---
+
+## 7. Fluxo de Trabalho Git e Padrão de Commits
+
+O repositório adota **Gitflow** aliado ao padrão **Conventional Commits** (documentado em [`CONTRIBUTING.md`](CONTRIBUTING.md)):
+
+### Estrutura de Branches
+
+- `main`: linha principal estável, pronta para demonstração e entrega.
+- `develop`: branch de integração contínua das entregas validadas.
+- `feature/*`, `fix/*`, `docs/*`, `test/*`, `chore/*`: branches curtas criadas a partir de `develop` para cada card/issue, integradas via Pull Request com revisão cruzada.
+
+### Convenção de Commits (Conventional Commits)
+
+Formato padrão: `tipo(escopo): descrição curta`
+
+- `feat(ui): ...` — novas funcionalidades ou ajustes de interface (`CaixaView`, `ProdutoListView`, etc.).
+- `feat(core): ...` / `feat(cliente): ...` — regras de negócio, entidades, serviços e repositórios.
+- `fix(...): ...` — correções de bugs e ajustes de comportamento.
+- `test(...): ...` — adição ou atualização de testes automatizados JUnit 5.
+- `docs: ...` — documentação técnica, guias e diagramas.
+- `chore: ...` — configurações de build, repositório e manutenção.
+
+---
+
+## 8. Modelagem e Diagramas de Arquitetura (Seção Jeniffer)
+
+> **[Espaço Reservado — Consolidação por Jeniffer]**  
+> Esta seção destina-se à inclusão e consolidação final dos **Diagramas de Classes** e **Diagramas de Fluxo Arquitetural** do **Sabor Express PDV** elaborados por **Jeniffer Camargo Oliveira**, mantendo a referência visual alinhada à versão final entregue.
+
+### 8.1. Visão Geral da Arquitetura em Camadas
 
 ```mermaid
 graph TD
     subgraph UI_Layer ["Camada de Apresentação (View - Java Swing)"]
         MF["MainFrame (CardLayout)"]
-        LV["ProdutoListView (JTable)"]
-        FV["ProdutoFormView (Formulário)"]
-        TM["ProdutoTableModel (AbstractTableModel)"]
-        MF --> LV
-        MF --> FV
-        LV --> TM
+        PV["ProdutoListView / ProdutoFormView"]
+        CV["CaixaView / HistoricoVendasView"]
+        CLV["ClienteListView / ClienteFormView"]
     end
 
-    subgraph Controller_Layer ["Camada de Controle (Controller / Mediator)"]
+    subgraph Controller_Layer ["Camada de Controle (Controller)"]
         PC["ProdutoController"]
+        VC["VendaController"]
+        CC["ClienteController"]
     end
 
-    subgraph Model_Layer ["Camada de Modelo (Model / Domain / Service)"]
-        PS["ProdutoService (Subject / Business Rules)"]
-        PO["&lt;&lt;interface&gt;&gt;<br/>ProdutoObserver"]
-        PE["Produto (JPA Entity)"]
+    subgraph Model_Layer ["Camada de Modelo (Service / Observer / Entity)"]
+        PS["ProdutoService"]
+        VS["VendaService"]
+        CS["ClienteService"]
+        PO["ProdutoObserver"]
+        VO["VendaObserver"]
+        CO["ClienteObserver"]
+        ENT["Categoria, Produto, Cliente, Venda, ItemVenda"]
     end
 
-    subgraph Persistence_Layer ["Camada de Persistência (Repository / ORM)"]
-        PR["&lt;&lt;interface&gt;&gt;<br/>ProdutoRepository"]
-        PRI["ProdutoRepositoryImpl"]
-        JU["JPAUtil (EntityManagerFactory)"]
-        H2[("H2 Database (Embutido / Arquivo)")]
+    subgraph Persistence_Layer ["Camada de Persistência (Repository / JPA / H2)"]
+        REPO["Repositories (Produto / Cliente / Venda / Categoria)"]
+        JPA["JPAUtil / EntityManager"]
+        H2[("H2 Database (./data/pdv_db)")]
     end
 
-    %% Relações e Fluxos
-    LV -- "Eventos (Clicks)" --> PC
-    FV -- "Eventos (Clicks)" --> PC
-    PC -- "Manipula Navegação" --> MF
-    PC -- "Chama Operações" --> PS
-    PS -- "Validações &amp; Notificações" --> PR
-    PRI -. "Implementa" .-> PR
-    PS --> PRI
-    PS -- "Notifica onProdutosChanged()" --> PO
-    PC -. "Implementa" .-> PO
-    PO -. "Atualiza Dados" .-> TM
-    PRI --> JU
-    PRI --> PE
-    JU --> H2
+    PV -- eventos --> PC
+    CV -- eventos --> VC
+    CLV -- eventos --> CC
+    PC --> PS
+    VC --> VS
+    VC --> PS
+    CC --> CS
+    PS --> REPO
+    VS --> REPO
+    CS --> REPO
+    PS -- notifica --> PO
+    VS -- notifica --> VO
+    CS -- notifica --> CO
+    PO -- EDT invokeLater --> PV
+    VO -- EDT invokeLater --> CV
+    CO -- EDT invokeLater --> CLV
+    REPO --> JPA --> H2
+    REPO --> ENT
 ```
 
----
-
-### 5.2. Diagrama de Sequência: Fluxo "Salvar Produto"
-
-O diagrama a seguir detalha o ciclo de vida completo do cadastro de um produto, desde a interação do usuário na interface gráfica até a persistência no banco e a atualização reativa da tabela:
+### 8.2. Diagrama de Sequência — Fluxo de Venda e Cancelamento
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Usuario as Operador
-    participant Form as ProdutoFormView
-    participant List as ProdutoListView (TableModel)
-    participant Ctrl as ProdutoController
-    participant Svc as ProdutoService
-    participant Repo as ProdutoRepositoryImpl
+    actor Operador
+    participant Caixa as CaixaView
+    participant Ctrl as VendaController
+    participant VSvc as VendaService
+    participant PSvc as ProdutoService
+    participant VRepo as VendaRepositoryImpl
     participant JPA as EntityManager (H2)
+    participant Obs as VendaObserver / UI
 
-    Usuario->>Form: Clica em 'Salvar Produto'
-    Form->>Ctrl: Dispara ActionListener (btnSalvar)
-    Ctrl->>Form: Coleta dados (código de barras, nome, preço, estoque)
-    Form-->>Ctrl: Devolve os dados solicitados
-    Ctrl->>Ctrl: Valida conversão numérica (BigDecimal e Integer)
-    
-    Ctrl->>Svc: salvar(novoProduto)
-    Note over Svc: Valida Regras de Negócio<br/>- Campos não vazios<br/>- Preço positivo (> 0)<br/>- Estoque não negativo (>= 0)<br/>- Unicidade do código de barras
-    
-    Svc->>Repo: salvar(produto)
-    Repo->>JPA: em.getTransaction().begin()
-    Repo->>JPA: em.persist(produto)
-    Repo->>JPA: em.getTransaction().commit()
-    JPA-->>Repo: Produto com ID gerado (Identity)
-    Repo-->>Svc: Retorna produto persistido
-    
-    Note over Svc: Padrão Observer Disparado<br/>(Thread-Safe via SwingUtilities.invokeLater)
-    Svc->>Ctrl: onProdutosChanged(listaAtualizada)
-    Ctrl->>List: atualizarTabela(listaAtualizada)
-    Ctrl->>Form: Exibe mensagem de confirmação
-    Ctrl->>List: Alterna CardLayout para tela de Listagem
-    List-->>Usuario: JTable repintada e atualizada na tela
+    Operador->>Caixa: Clica em "Finalizar Venda"
+    Caixa->>Ctrl: ActionListener (btnFinalizar)
+    Ctrl->>VSvc: finalizarVenda(carrinho, clienteId, clienteNome)
+    VSvc->>PSvc: valida produto ativo e estoque suficiente
+    VSvc->>VRepo: salvar(venda)
+    VRepo->>JPA: begin() -> persist(venda + itens) -> commit()
+    VSvc->>Obs: notificarObservadores() via SwingUtilities.invokeLater
+    Obs-->>Caixa: atualiza histórico e tabelas
 ```
 
----
-
-### 5.3. Diagrama de Classes: Padrões Repository & Observer
-
-```mermaid
-classDiagram
-    class Produto {
-        -Long id
-        -String codigoBarras
-        -String nome
-        -BigDecimal preco
-        -Integer quantidadeEstoque
-        +getId() Long
-        +getCodigoBarras() String
-        +getNome() String
-        +getPreco() BigDecimal
-        +getQuantidadeEstoque() Integer
-    }
-
-    class ProdutoObserver {
-        <<interface>>
-        +onProdutosChanged(List~Produto~ produtos) void
-    }
-
-    class ProdutoRepository {
-        <<interface>>
-        +salvar(Produto p) Produto
-        +atualizar(Produto p) Produto
-        +excluir(Long id) void
-        +buscarPorId(Long id) Optional~Produto~
-        +buscarPorCodigoBarras(String cod) Optional~Produto~
-        +listarTodos() List~Produto~
-    }
-
-    class ProdutoRepositoryImpl {
-        -EntityManagerFactory emf
-        +salvar(Produto p) Produto
-        +atualizar(Produto p) Produto
-        +excluir(Long id) void
-        +buscarPorId(Long id) Optional~Produto~
-        +buscarPorCodigoBarras(String cod) Optional~Produto~
-        +listarTodos() List~Produto~
-    }
-
-    class ProdutoService {
-        -ProdutoRepository repository
-        -List~ProdutoObserver~ observers
-        +addObserver(ProdutoObserver o) void
-        +removeObserver(ProdutoObserver o) void
-        +notificarObservadores() void
-        +salvar(Produto p) Produto
-        +atualizar(Produto p) Produto
-        +excluir(Long id) void
-        +listarTodos() List~Produto~
-    }
-
-    class ProdutoController {
-        -MainFrame mainFrame
-        -ProdutoListView listView
-        -ProdutoFormView formView
-        -ProdutoService service
-        +inicializar() void
-        +onProdutosChanged(List~Produto~ produtos) void
-    }
-
-    ProdutoRepository <|.. ProdutoRepositoryImpl : implementa
-    ProdutoObserver <|.. ProdutoController : implementa
-    ProdutoService o--> ProdutoObserver : notifica (1..*)
-    ProdutoService --> ProdutoRepository : utiliza (DIP)
-    ProdutoController --> ProdutoService : orquestra
-    ProdutoRepositoryImpl --> Produto : gerencia
-```
+*(Diagramas de classes detalhados e fluxos complementares a serem consolidados nesta seção por Jeniffer.)*
 
 ---
 
-## 6. Justificativa Pedagógica do Stack Tecnológico
+## 9. Equipe e Divisão de Papéis
 
-| Tecnologia / Decisão | Justificativa Didática |
-| :--- | :--- |
-| **Java 17+ (LTS)** | Linguagem padrão em instituições de ensino técnico e superior, fornecendo estabilidade corporativa aliada a recursos modernos da linguagem. |
-| **Jakarta Persistence (JPA 3.1) & Hibernate 6.x** | Demonstra a separação fundamental entre **especificação padrão** (`jakarta.persistence.*`) e **provedor de implementação** (`org.hibernate.*`). Ensina aos alunos o paradigma ORM, ciclo de vida de entidades (*transient, managed, detached*), mapeamento de constraints e transações atômicas ACID sem acoplamento a SQL proprietário. |
-| **H2 Database (Embutido / Arquivo)** | **Zero-Configuration:** Elimina a necessidade de servidores de banco externos (MySQL/PostgreSQL/Docker), permitindo que estudantes e desenvolvedores executem a aplicação imediatamente. Os dados persistem no diretório local `./data/pdv_db.mv.db`. |
-| **Java Swing (Código Puro)** | Permite ao docente demonstrar a engenharia de componentes visuais (`JFrame`, `JPanel`), gerenciadores de layout (`CardLayout`, `GridBagLayout`, `BorderLayout`) e o controle rigoroso da **Event Dispatch Thread (EDT)**. |
-| **FlatLaf Look & Feel** | Proporciona estética moderna e profissional à aplicação desktop, superando o aspecto arcaico dos temas tradicionais do Java. |
-| **Maven Wrapper (`mvnw` / `mvnw.cmd`)** | Assegura reproducibilidade estrita de compilação e execução em qualquer plataforma (Windows, Linux, macOS), sem depender de instalação prévia do Maven no sistema operacional. |
-
----
-
-## 7. Estrutura do Projeto
-
-```text
-exemplo_persistencia_JavaSwing/
-├── .mvn/wrapper/                 # Binários e configuração do Maven Wrapper
-├── data/                         # Arquivos de banco de dados H2 gerados em tempo de execução
-├── src/
-│   ├── main/
-│   │   ├── br/fiesp/senai/unisenai/saborexpress/pdv
-│   │   │   ├── Main.java                        # Ponto de entrada (Bootstrap, Pure DI e Look&Feel)
-│   │   │   ├── controller/
-│   │   │   │   └── ProdutoController.java       # Orquestrador MVC e ouvinte Observer
-│   │   │   ├── model/
-│   │   │   │   ├── entity/
-│   │   │   │   │   └── Produto.java             # Entidade JPA mapeada para tabela 'produtos'
-│   │   │   │   ├── observer/
-│   │   │   │   │   └── ProdutoObserver.java     # Interface funcional do padrão Observer
-│   │   │   │   ├── repository/
-│   │   │   │   │   ├── ProdutoRepository.java   # Abstração de persistência (Interface)
-│   │   │   │   │   └── ProdutoRepositoryImpl.java # Implementação com JPA / EntityManager
-│   │   │   │   └── service/
-│   │   │   │       └── ProdutoService.java      # Regras de negócio, unicidade e Subject Observer
-│   │   │   ├── util/
-│   │   │   │   └── JPAUtil.java                 # Gerenciador Singleton do EntityManagerFactory
-│   │   │   └── view/
-│   │   │       ├── MainFrame.java               # Janela com CardLayout para alternância de telas
-│   │   │       ├── ProdutoFormView.java         # Formulário de cadastro/edição com GridBagLayout
-│   │   │       ├── ProdutoListView.java         # Tabela de dados com JTable e ações CRUD
-│   │   │       └── tablemodel/
-│   │   │           └── ProdutoTableModel.java   # Modelo de tabela reativo (AbstractTableModel)
-│   │   └── resources/
-│   │       └── META-INF/
-│   │           └── persistence.xml              # Configuração JPA para banco H2 e testes
-│   └── test/br/fiesp/senai/unisenai/saborexpress/pdv
-│       ├── model/repository/
-│       │   └── ProdutoRepositoryTest.java       # Teste de persistência e operações CRUD
-│       └── model/service/
-│           └── ProdutoServiceTest.java          # Teste de validações de negócio e Observer
-├── pom.xml                                      # Descritor do Maven e dependências
-├── mvnw / mvnw.cmd                              # Scripts executáveis do Maven Wrapper
-└── README.md                                    # Plano de aula e documentação técnica integrada
-```
-
----
-
-## 8. Como Compilar e Executar
-
-### Pré-requisitos
-- **Java JDK 17** ou superior instalado (`java -version`).
-- Acesso à internet na primeira execução para download automático de dependências pelo Maven Wrapper.
-
-### 8.1. Execução via Maven Wrapper (Modo Desenvolvimento)
-
-No terminal, posicionado na raiz do projeto:
-
-#### No Windows (PowerShell / CMD):
-```powershell
-# Executar a aplicação diretamente pelo Maven Wrapper:
-.\mvnw.cmd compile exec:java -Dexec.mainClass="br.fiesp.senai.unisenai.saborexpress.pdv.Main"
-```
-
-#### No Linux / macOS (Bash / Zsh):
-```bash
-./mvnw compile exec:java -Dexec.mainClass="br.fiesp.senai.unisenai.saborexpress.pdv.Main"
-```
-
----
-
-### 8.2. Compilação, Testes e Geração do Pacote JAR (Produção)
-
-Para executar a suíte completa de testes automatizados e empacotar o projeto em um arquivo JAR executável autossuficiente:
-
-```powershell
-# Limpar, testar e empacotar:
-.\mvnw.cmd clean package
-```
-
-Após o término com `BUILD SUCCESS`, execute o artefato gerado:
-
-```powershell
-# Execução do executável empacotado:
-java -jar target/exemplo_persistencia_JavaSwing-1.0.0.jar
-```
-
----
-
-### 8.3. Execução Direta via IDE (VS Code, IntelliJ IDEA, Eclipse ou NetBeans)
-1. Abra a pasta do projeto como um projeto Maven existente na sua IDE preferida.
-2. Aguarde a indexação das dependências do `pom.xml`.
-3. Navegue até o arquivo `src/main/java/br/gov/sp/cps/fatec/pdv/Main.java`.
-4. Clique com o botão direito e selecione **Run 'Main.main()'**.
-
----
-
-## 9. Cronograma e Desenvolvimento da Aula (50 Minutos)
-
-Este cronograma detalha a articulação didática entre exposição teórica, inspeção de código e demonstração funcional:
-
-| Etapa | Tempo | Estratégia Pedagógica | Conteúdo Programático Desenvolvido |
-| :---: | :---: | :--- | :--- |
-| **1. Abertura e Situação-Problema** | 00min a 10min | Estudo de Caso Norteador e Contextualização Curricular | Apresentação pessoal, articulação com TP-I e Banco de Dados (PPC), objetivos de aprendizagem (CHA). Introdução à situação-problema do PDV comercial e riscos de acoplar telas a comandos SQL. |
-| **2. Fundamentação Teórica e Arquitetura** | 10min a 25min | Exposição Conceitual Dialogada com Diagramas | Persistência de dados (RAM vs. Disco / ACID), caracterização do Java Swing com IoC, arquitetura MVC (SoC), revisão formal do padrão Observer (GoF), Repository (DDD) e funcionamento do ORM (JPA/Hibernate) para resolução do *impedance mismatch*. Apresentação da *stack* do projeto. |
-| **3. Inspeção da Implementação (Estudo de Caso)** | 25min a 45min | Demonstração Dirigida de Código guiada por Diagrama de Sequência | Condução passo a passo do fluxo "Cadastrar Novo Produto" integrando teoria e prática:<br>• **View → Controller:** Captura de eventos (`ActionListener`) e sanitização de dados.<br>• **Controller → Model:** Validação de domínio em `ProdutoService`.<br>• **Model → Persistência:** Execução de transação ACID no `ProdutoRepositoryImpl` via ORM (`EntityManager` / H2).<br>• **Sincronização Reativa:** Disparo do padrão Observer na EDT do Swing (`fireTableDataChanged`) e repintura da `JTable`. |
-| **4. Síntese e Fechamento** | 45min a 48min | Síntese Integradora e Validação Formativa | Recapitulação do fluxo integrado (Interface → Padrões → Persistência Segura) e abertura da sessão para esclarecimento de dúvidas e discussões. |
-| **5. Proposição Prática e PBL** | 48min a 50min | Aprendizagem Baseada em Projetos (PBL) | Apresentação do repositório público no GitHub, proposta de extensão do núcleo PDV em equipes multidisciplinares (novas entidades e telas) e explicitação da rubrica de avaliação formativa. |
-
----
-
-## 10. Avaliação da Aprendizagem e Proposta Prática (PBL)
-
-Para consolidar as competências da disciplina, os estudantes utilizarão o repositório Git do projeto demonstrado (**PDV Core**) como matriz arquitetural inicial.
-
-### 10.1. O Desafio Prático
-Em equipes, os estudantes deverão estender a base do projeto para conceber e implementar um sistema completo de PDV aplicado a um **nicho de mercado** à escolha do grupo (ex.: farmácia, livraria, autopeças, pet shop).
-
-### 10.2. Requisitos de Expansão
-1. **Modelagem e Mapeamento ORM:** Criação de novas entidades e relacionamentos mapeados com JPA (ex.: `Cliente`, `Venda`, `ItemVenda`).
-2. **Interface Gráfica Desacoplada:** Implementação das respectivas telas e tabelas Swing respeitando a separação MVC e a sincronização reativa com o padrão Observer.
-3. **Regras de Negócio e Transações:** Tratamento de transações atômicas de vendas com validação de estoque e controle de exceções na camada Repository.
-4. **Engenharia e Colaboração:** Utilização rigorosa de versionamento colaborativo com Gitflow e commits semânticos.
-
-### 10.3. Critérios de Avaliação (Rubrica de Desempenho)
-- **Aderência Arquitetural (MVC):** Rigor na separação de responsabilidades (a View não acessa o banco; o Controller apenas orquestra; a persistência é isolada no Repository).
-- **Aplicação de Padrões de Projeto (GoF / Repository):** Utilização correta dos padrões Observer para atualização de interfaces e contratos de interface desacoplados.
-- **Qualidade e Segurança da Persistência:** Mapeamento ORM coerente, integridade de transações (`commit`/`rollback`) e ausência de vulnerabilidades de SQL Injection.
-- **Usabilidade e Sincronização da Interface:** Interface funcional, responsiva e com atualização consistente dos dados na tabela após operações de CRUD.
-- **Processo de Engenharia e Versionamento:** Histórico de commits coerente, documentação técnica (`README.md` com diagramas) e divisão colaborativa de tarefas no Gitflow.
-
----
-
-## 11. Recursos Didáticos
-
-- **Quadro branco e marcadores:** Para esquematização visual e dedução dos fluxos arquiteturais durante a introdução teórica.
-- **Projeção multimídia institucional:** Para exibição dos diagramas conceituais (Mermaid) e demonstração dirigida do código-fonte.
-- **Plano de aula e roteiro didático:** Material estruturado para acompanhamento da aula teórico-prática.
-- **Repositório de controle de versão (GitHub):** Roteiro e esqueleto do projeto disponibilizados aos estudantes como ponto de partida da atividade prática.
-
----
-
-## 12. Referências Bibliográficas
-
-- **FREEMAN, Eric; FREEMAN, Elisabeth.** *Use a Cabeça! Padrões de Projetos.* 2. ed. Rio de Janeiro: Alta Books, 2007.
-- **GAMMA, Erich; HELM, Richard; JOHNSON, Ralph; VLISSIDES, John.** *Padrões de Projetos: Soluções Reutilizáveis de Software Orientados a Objetos.* Porto Alegre: Bookman, 2015.
-- **GUERRA, Eduardo.** *Design Patterns com Java: Projeto Orientado a Objetos guiado por Padrões.* São Paulo: Casa do Código, 2014.
-- **SIERRA, Kathy; BATES, Bert.** *Use a Cabeça! Java.* 2. ed. São Paulo: O'Reilly / Alta Books, 2005.
-- **ANDRADE, S. S.** *Aprenda Java EE 8: Aplicações Para Web com Spring MVC e Hibernate.* São Paulo: SENAI-SP Editora, 2018.
-- **ELMASRI, Ramez; NAVATHE, Shamkant B.** *Sistemas de Banco de Dados.* 7. ed. São Paulo: Pearson, 2018.
-- **ECLIPSE FOUNDATION.** *Jakarta Persistence (JPA) Specification 3.1.* Disponível em: <https://jakarta.ee/specifications/persistence/>. Acesso em: 11 out. 2026.
-- **H2 DATABASE ENGINE.** *H2 Database Engine Architecture and Documentation.* Disponível em: <http://www.h2database.com/html/main.html>. Acesso em: 11 out. 2026.
-- **HIBERNATE COMMUNITY.** *Hibernate ORM User Guide.* Disponível em: <https://hibernate.org/orm/documentation/>. Acesso em: 11 out. 2026.
-- **ORACLE CORPORATION.** *Java Platform, Standard Edition (Java SE) Documentation: Package javax.swing.* Disponível em: <https://docs.oracle.com/en/java/javase/>. Acesso em: 11 out. 2026.
-
----
-
-## 13. Histórico de Versões e Gitflow
-
-O repositório foi construído seguindo o modelo **Gitflow** e convenções de **Conventional Commits**:
-
-- `main`: Branch estável contendo a versão consolidada para demonstração e produção.
-- `develop`: Branch de integração contínua das novas funcionalidades.
-- `feature/setup-and-persistence`: Configuração Maven, JPA Hibernate 6, H2 Database, Entidade `Produto`, Repositório e testes unitários.
-- `feature/views-and-tablemodel`: Construção dos componentes visuais Swing (`ProdutoTableModel`, `ProdutoFormView`, `ProdutoListView`, `MainFrame`).
-- `feature/controller-and-observer`: Implementação da orquestração do `ProdutoController`, serviço de validações `ProdutoService` e sincronização via `ProdutoObserver`.
-- `docs/didactic-documentation`: Elaboração completa da documentação pedagógica, plano de aula e diagramas arquiteturais.
-
----
-
-*Prof. Cainã Antunes Silva*  
-*Técnicas de Programação II*
+| Integrante | GitHub / Identificador | Trilha | Responsabilidades Principais |
+|---|---|---|---|
+| **Gustavo Leme de Castro** | `Gusleme` | **Trilha A — Cardápio, Caixa & Documentação** | Modelagem de `Categoria`/`Produto`, `DataLoader` (seed), ativação/inativação, alerta de estoque baixo, `CaixaView`, `HistoricoVendasView` e consolidação do `README.md`. |
+| **Pedro Henrique Carmo** | `pedrh-carmo` / `w-tangly` | **Trilha B — Clientes, UI & Testes** | CRUD de `Cliente` (`Entity`, `Repository`, `Service`, `Observer`), telas Swing de Cliente, busca/filtros de produtos, `MainFrame`, formatação/máscaras (`FormatUtils`) e testes JUnit de persistência/venda. |
+| **Jeniffer Camargo Oliveira** | `jenifferCamar` | **Trilha C — Vendas Core, Transações & Integração** | Configuração do repositório e Gitflow, modelagem e transações atômicas de `Venda`/`ItemVenda`, cancelamento com estorno de estoque, coordenação de marcos e diagramas arquiteturais. |

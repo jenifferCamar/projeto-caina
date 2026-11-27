@@ -1,11 +1,13 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.config.DataLoader;
+import br.fiesp.senai.unisenai.saborexpress.pdv.controller.ClienteController;
 import br.fiesp.senai.unisenai.saborexpress.pdv.controller.ProdutoController;
 import br.fiesp.senai.unisenai.saborexpress.pdv.controller.VendaController;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.CategoriaRepositoryImpl;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepository;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ClienteRepositoryImpl;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepositoryImpl;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.VendaRepository;
@@ -51,6 +53,8 @@ import java.awt.event.WindowEvent;
  * <li><b>Data Loader (Database Seeding):</b> Executa carga inicial de dados
  * idempotente via {@link DataLoader} (padrão CommandLineRunner do Spring Boot).</li>
  * </ul>
+ *
+ * @author Cainã Antunes Silva
  */
 public class Main {
 
@@ -73,30 +77,28 @@ public class Main {
                 // Instanciação da camada de serviço de negócio e do Observer
                 ProdutoService service = new ProdutoService(produtoRepository, categoriaRepository);
 
-                // Procura e aplica o tema Nimbus entre os temas instalados no Java
-                for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                    if ("Nimbus".equals(info.getName())) {
-                        UIManager.setLookAndFeel(info.getClassName());
-                        break;
-                    }
-                }
-
-                // Instanciação da Janela Principal (View com CardLayout)
-                MainFrame mainFrame = new MainFrame();
-
-                // Instanciação do Controlador conectando View e Model (MVC)
-                ProdutoController controller = new ProdutoController(mainFrame, service);
-                controller.inicializar();
-
                 // Instanciação dos repositórios e serviços de Venda
                 VendaRepository vendaRepository = new VendaRepositoryImpl();
                 VendaService vendaService = new VendaService(vendaRepository, service);
 
-                // Instanciação do Controlador de Caixa conectando View e Model (MVC)
+                // Instanciação da Janela Principal (View com CardLayout)
+                MainFrame mainFrame = new MainFrame();
+
+                // Instanciação dos Controladores conectando View e Model (MVC)
+                ProdutoController produtoController = new ProdutoController(mainFrame, service);
+                produtoController.inicializar();
+
+                ClienteRepository clienteRepository = new ClienteRepositoryImpl();
+                ClienteController clienteController = new ClienteController(mainFrame, clienteRepository);
+                clienteController.inicializar();
+
                 CaixaView caixaView = mainFrame.getCaixaView();
                 HistoricoVendasView historicoView = mainFrame.getHistoricoView();
                 VendaController vendaController = new VendaController(mainFrame, caixaView, historicoView, service, vendaService);
                 vendaController.inicializar();
+
+                // Mostra o Cardápio como tela inicial
+                mainFrame.mostrarLista();
 
                 // Gerenciamento de encerramento de conexões
                 mainFrame.addWindowListener(new WindowAdapter() {

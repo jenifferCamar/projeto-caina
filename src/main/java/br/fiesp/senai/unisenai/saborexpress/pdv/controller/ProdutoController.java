@@ -1,17 +1,23 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.controller;
 
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Categoria;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.PersistenceException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.ProdutoObserver;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.repository.ProdutoRepository;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.ProdutoService;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.MainFrame;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.ProdutoFormView;
 import br.fiesp.senai.unisenai.saborexpress.pdv.view.ProdutoListView;
 
 import javax.swing.JOptionPane;
+import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Controlador Principal do Módulo de Gestão de Produtos (Padrão MVC &
@@ -44,15 +50,8 @@ public class ProdutoController implements ProdutoObserver {
     private final ProdutoFormView formView;
     private final ProdutoService service;
 
-    /**
-     * Construtor recebendo o Repositório diretamente (Inversão de Dependência).
-     *
-     * @param mainFrame  Janela principal da aplicação.
-     * @param repository Abstração do repositório de dados.
-     */
-    public ProdutoController(MainFrame mainFrame, ProdutoRepository repository) {
-        this(mainFrame, new ProdutoService(repository));
-    }
+    // Timer para debounce da busca (1.5s)
+    private final Timer searchDebounceTimer;
 
     /**
      * Construtor recebendo a camada de serviço.
@@ -65,6 +64,10 @@ public class ProdutoController implements ProdutoObserver {
         this.listView = mainFrame.getListView();
         this.formView = mainFrame.getFormView();
         this.service = Objects.requireNonNull(service, "ProdutoService não pode ser nulo.");
+
+        // Timer para debounce da busca (1.5s)
+        this.searchDebounceTimer = new Timer(1500, e -> realizarBuscaComDebounce());
+        this.searchDebounceTimer.setRepeats(false);
 
         vincularEventos();
     }
@@ -89,13 +92,57 @@ public class ProdutoController implements ProdutoObserver {
         listView.getBtnEditar().addActionListener(e -> onEditarProduto());
         listView.getBtnExcluir().addActionListener(e -> onExcluirProduto());
         listView.getBtnRecarregar().addActionListener(e -> onRecarregarProdutos());
-        listView.getBtnBuscar().addActionListener(e -> onBuscarProdutos());
+        // Botão Buscar removido - busca agora é feita via debounce no campo de texto
         listView.getBtnLimparFiltro().addActionListener(e -> onLimparFiltro());
+        listView.getBtnRecarregar().addActionListener(e -> onRecarregarProdutos());
+
+        // Configurar debounce na busca (document listener)
+        configurarDebounceBusca();
 
         // --- Eventos da Tela de Formulário ---
         formView.getBtnSalvar().addActionListener(e -> onSalvarProduto());
         formView.getBtnLimpar().addActionListener(e -> onLimparFormulario());
         formView.getBtnVoltar().addActionListener(e -> onVoltarParaListagem());
+    }
+
+    /**
+     * Configura o debounce (1.5s) no campo de busca.
+     * A busca é realizada automaticamente após 1.5s de inatividade do usuário.
+     */
+    private void configurarDebounceBusca() {
+        listView.getTxtBusca().getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                reiniciarTimerBusca();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                reiniciarTimerBusca();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                reiniciarTimerBusca();
+            }
+
+            private void reiniciarTimerBusca() {
+                searchDebounceTimer.restart();
+            }
+        });
+    }
+
+    /**
+     * Realiza a busca com debounce (chamado pelo timer após 1.5s de inatividade).
+     * Usa busca sem acento para encontrar "agua" e "água" igualmente.
+     */
+    private void realizarBuscaComDebounce() {
+        String termo = listView.getBuscaTexto();
+        if (termo == null || termo.isEmpty()) {
+            service.notificarObservadores();
+            return;
+        }
+        listView.atualizarTabela(service.buscarPorNomeSemAcento(termo));
     }
 
     // ==========================================
@@ -117,15 +164,6 @@ public class ProdutoController implements ProdutoObserver {
 
     private void onRecarregarProdutos() {
         service.notificarObservadores();
-    }
-
-    private void onBuscarProdutos() {
-        String termo = listView.getBuscaTexto();
-        if (termo == null || termo.isEmpty()) {
-            service.notificarObservadores();
-            return;
-        }
-        listView.atualizarTabela(service.buscarPorNome(termo));
     }
 
     private void onLimparFiltro() {
@@ -197,22 +235,33 @@ public class ProdutoController implements ProdutoObserver {
             try {
                 preco = new BigDecimal(precoStr);
             } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException("Preço inválido. Informe um valor numérico válido (ex.: 19.99).");
+                throw new BusinessException("Preço inválido. Informe um valor numérico válido (ex.: 19.99).");
             }
 
             Integer quantidadeEstoque;
             try {
                 quantidadeEstoque = Integer.parseInt(estoqueStr);
             } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException(
-                        "Quantidade em estoque inválida. Informe um número inteiro (ex.: 10).");
+                throw new BusinessException("Quantidade em estoque inválida. Informe um número inteiro (ex.: 10).");
+            }
+
+            Integer estoqueMinimo;
+            try {
+                estoqueMinimo = Integer.parseInt(formView.getEstoqueMinimoTexto());
+            } catch (NumberFormatException ex) {
+                throw new BusinessException("Estoque mínimo inválido. Informe um número inteiro (ex.: 3).");
             }
 
             Long id = formView.getProdutoIdAtual();
+            boolean ativo = formView.isAtivoSelecionado();
 
             if (id == null) {
                 // Modo Cadastro (Novo)
-                Produto novoProduto = new Produto(codigoBarras, nome, preco, quantidadeEstoque);
+                Categoria categoriaPadrao = service.listarCategoriasAtivas().stream()
+                        .findFirst()
+                        .orElse(null);
+
+                Produto novoProduto = new Produto(codigoBarras, nome, "", preco, categoriaPadrao, ativo, quantidadeEstoque, estoqueMinimo);
                 service.salvar(novoProduto);
                 JOptionPane.showMessageDialog(
                         mainFrame,
@@ -221,7 +270,11 @@ public class ProdutoController implements ProdutoObserver {
                         JOptionPane.INFORMATION_MESSAGE);
             } else {
                 // Modo Atualização (Edição)
-                Produto produtoAtualizado = new Produto(id, codigoBarras, nome, preco, quantidadeEstoque);
+                Produto existente = service.buscarPorId(id).orElse(null);
+                Categoria categoria = (existente != null) ? existente.getCategoria() : null;
+                String descricao = (existente != null) ? existente.getDescricao() : "";
+
+                Produto produtoAtualizado = new Produto(id, codigoBarras, nome, descricao, preco, categoria, ativo, quantidadeEstoque, estoqueMinimo);
                 service.atualizar(produtoAtualizado);
                 JOptionPane.showMessageDialog(
                         mainFrame,
@@ -233,20 +286,26 @@ public class ProdutoController implements ProdutoObserver {
             // Retorna à tela de listagem
             mainFrame.mostrarLista();
 
-        } catch (IllegalArgumentException ex) {
-            // Erros de validação amigáveis ao usuário
+        } catch (BusinessException ex) {
             JOptionPane.showMessageDialog(
                     mainFrame,
                     ex.getMessage(),
                     "Validação de Dados",
                     JOptionPane.WARNING_MESSAGE);
-        } catch (Exception ex) {
-            // Erros inesperados de infraestrutura ou banco
+        } catch (PersistenceException ex) {
             JOptionPane.showMessageDialog(
                     mainFrame,
-                    "Falha na operação de persistência: " + ex.getMessage(),
-                    "Erro no Banco de Dados",
+                    "Não foi possível salvar os dados. Tente novamente.",
+                    "Erro de Persistência",
                     JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro de persistência ao salvar produto: " + ex.getMessage());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    mainFrame,
+                    "Ocorreu um erro inesperado ao salvar o produto.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro inesperado ao salvar produto: " + ex.getMessage());
         }
     }
 
