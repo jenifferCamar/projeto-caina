@@ -159,6 +159,10 @@ public class ProdutoListView extends JPanel {
         txtBusca.setMinimumSize(new Dimension(150, 30));
         txtBusca.setPreferredSize(new Dimension(220, 30));
         txtBusca.setToolTipText("Digite o nome ou código de barras para buscar");
+        btnBuscar = new JButton("Buscar");
+        btnLimparFiltro = new JButton("Limpar Filtro");
+        btnBuscar = new JButton("Buscar");
+        btnLimparFiltro = new JButton("Limpar Filtro");
         painelBusca.add(txtBusca);
         painelBusca.add(btnBuscar);
         painelBusca.add(btnLimparFiltro);
