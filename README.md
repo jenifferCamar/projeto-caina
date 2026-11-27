@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="./2.png" alt="Sabor Express Lanchonete" width="320" />
-</p>
+![Sabor Express Lanchonete](./2.png)
 
 <h1 align="center">Sabor Express Lanchonete — Sabor Express PDV</h1>
 
