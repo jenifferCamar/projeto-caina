@@ -124,22 +124,36 @@ public class ProdutoListView extends JPanel {
             }
         });
 
+        // Botão Recarregar posicionado no canto superior direito da tabela
+        btnRecarregar = new JButton("Recarregar");
+        btnRecarregar.setPreferredSize(new Dimension(110, 30));
+        btnRecarregar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        JPanel painelAcoesTabela = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
+        painelAcoesTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
+        painelAcoesTabela.add(btnRecarregar);
+
+        JPanel painelWrapperTabela = new JPanel(new BorderLayout());
+        painelWrapperTabela.add(painelAcoesTabela, BorderLayout.NORTH);
+
         JScrollPane scrollPane = new JScrollPane(tabelaProdutos);
         scrollPane.setBorder(BorderFactory.createTitledBorder(" Produtos Cadastrados "));
-        add(scrollPane, BorderLayout.CENTER);
+        painelWrapperTabela.add(scrollPane, BorderLayout.CENTER);
+        add(painelWrapperTabela, BorderLayout.CENTER);
 
         // 3. Rodapé com Ações e Contador de Registros
         JPanel painelRodape = new JPanel(new BorderLayout(10, 10));
+        painelRodape.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+        // Contador de registros à esquerda
+        JPanel painelContador = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         lblTotalRegistros = new JLabel("Total: 0 produto(s)");
         lblTotalRegistros.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        painelRodape.add(lblTotalRegistros, BorderLayout.WEST);
+        lblTotalRegistros.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        painelContador.add(lblTotalRegistros);
+        painelRodape.add(painelContador, BorderLayout.WEST);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-
-        btnRecarregar = new JButton("Recarregar");
-        btnRecarregar.setPreferredSize(new Dimension(110, 35));
 
         txtBusca = new JTextField();
         txtBusca.setPreferredSize(new Dimension(180, 30));
@@ -159,7 +173,6 @@ public class ProdutoListView extends JPanel {
         btnNovo.setPreferredSize(new Dimension(150, 35));
         btnNovo.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-        painelBotoes.add(btnRecarregar);
         painelBotoes.add(txtBusca);
         painelBotoes.add(btnBuscar);
         painelBotoes.add(btnLimparFiltro);
