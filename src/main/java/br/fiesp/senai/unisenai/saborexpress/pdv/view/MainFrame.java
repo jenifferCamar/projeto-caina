@@ -1,7 +1,5 @@
 package br.fiesp.senai.unisenai.saborexpress.pdv.view;
 
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.service.VendaService;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JButton;
@@ -18,7 +16,6 @@ public class MainFrame extends JFrame {
     public static final String TELA_CLIENTE_FORMULARIO = "CARD_CLIENTE_FORMULARIO";
     public static final String TELA_CAIXA = "CARD_CAIXA";
     public static final String TELA_HISTORICO = "CARD_HISTORICO";
-    public static final String TELA_DASHBOARD = "CARD_DASHBOARD";
 
     private final CardLayout cardLayout;
     private final JPanel painelPrincipal;
@@ -29,9 +26,8 @@ public class MainFrame extends JFrame {
     private final ClienteFormView clienteFormView;
     private final CaixaView caixaView;
     private final HistoricoVendasView historicoView;
-    private final DashboardView dashboardView;
 
-    public MainFrame(VendaService vendaService) {
+    public MainFrame() {
         super("Sabor Express PDV - Gestão de Lanchonete");
 
         this.cardLayout = new CardLayout();
@@ -43,7 +39,6 @@ public class MainFrame extends JFrame {
         this.clienteFormView = new ClienteFormView();
         this.caixaView = new CaixaView();
         this.historicoView = new HistoricoVendasView();
-        this.dashboardView = new DashboardView(vendaService);
 
         this.painelPrincipal.add(listView, TELA_LISTA);
         this.painelPrincipal.add(formView, TELA_FORMULARIO);
@@ -51,24 +46,20 @@ public class MainFrame extends JFrame {
         this.painelPrincipal.add(clienteFormView, TELA_CLIENTE_FORMULARIO);
         this.painelPrincipal.add(caixaView, TELA_CAIXA);
         this.painelPrincipal.add(historicoView, TELA_HISTORICO);
-        this.painelPrincipal.add(dashboardView, TELA_DASHBOARD);
 
         JPanel painelNav = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnCardapio = new JButton("Cardápio");
         JButton btnClientes = new JButton("Clientes");
         JButton btnCaixa = new JButton("Caixa");
         JButton btnHistorico = new JButton("Histórico");
-        JButton btnDashboard = new JButton("Dashboard");
         btnCardapio.addActionListener(e -> mostrarLista());
         btnClientes.addActionListener(e -> mostrarListaCliente());
         btnCaixa.addActionListener(e -> mostrarCaixa());
         btnHistorico.addActionListener(e -> mostrarHistorico());
-        btnDashboard.addActionListener(e -> mostrarDashboard());
         painelNav.add(btnCardapio);
         painelNav.add(btnClientes);
         painelNav.add(btnCaixa);
         painelNav.add(btnHistorico);
-        painelNav.add(btnDashboard);
 
         JPanel container = new JPanel(new BorderLayout());
         container.add(painelNav, BorderLayout.NORTH);
@@ -91,14 +82,10 @@ public class MainFrame extends JFrame {
         javax.swing.JMenuItem itemClientes = new javax.swing.JMenuItem("Gerenciamento de Clientes");
         itemClientes.addActionListener(e -> mostrarListaCliente());
 
-        javax.swing.JMenuItem itemDashboard = new javax.swing.JMenuItem("Dashboard de Vendas");
-        itemDashboard.addActionListener(e -> mostrarDashboard());
-
         menuModulos.add(itemCaixa);
         menuModulos.add(itemProdutos);
         menuModulos.add(itemHistorico);
         menuModulos.add(itemClientes);
-        menuModulos.add(itemDashboard);
         menuBar.add(menuModulos);
         setJMenuBar(menuBar);
 
@@ -116,7 +103,6 @@ public class MainFrame extends JFrame {
     public void mostrarFormularioCliente() { cardLayout.show(painelPrincipal, TELA_CLIENTE_FORMULARIO); }
     public void mostrarCaixa() { cardLayout.show(painelPrincipal, TELA_CAIXA); }
     public void mostrarHistorico() { cardLayout.show(painelPrincipal, TELA_HISTORICO); }
-    public void mostrarDashboard() { cardLayout.show(painelPrincipal, TELA_DASHBOARD); }
 
     public ProdutoListView getListView() { return listView; }
     public ProdutoFormView getFormView() { return formView; }
@@ -124,5 +110,4 @@ public class MainFrame extends JFrame {
     public ClienteFormView getClienteFormView() { return clienteFormView; }
     public CaixaView getCaixaView() { return caixaView; }
     public HistoricoVendasView getHistoricoView() { return historicoView; }
-    public DashboardView getDashboardView() { return dashboardView; }
 }

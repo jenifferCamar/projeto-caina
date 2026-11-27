@@ -2,7 +2,6 @@ package br.fiesp.senai.unisenai.saborexpress.pdv.model.service;
 
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemCarrinho;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
-import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.MetricasVendasDTO;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.EstoqueInsuficienteException;
@@ -212,46 +211,5 @@ public class VendaService {
      */
     public Optional<Venda> buscarPorId(Long id) {
         return vendaRepository.buscarPorId(id);
-    }
-
-    // ==========================================
-    // METRICAS DE VENDAS (DASHBOARD)
-    // ==========================================
-
-    /**
-     * Calcula as metricas de vendas para o período informado.
-     * <p>
-     * Apenas vendas com status {@code FINALIZADA} são consideradas. Vendas
-     * canceladas são ignoradas para não distorcer o faturamento e o ticket medio.
-     *
-     * @param inicio Data/hora inicial do filtro (pode ser {@code null} para
-     *               consulta geral sem filtro de período).
-     * @param fim    Data/hora final do filtro (pode ser {@code null} para consulta
-     *               geral sem filtro de período).
-     * @return DTO imutável contendo quantidade de vendas, faturamento total e
-     *         ticket médio.
-     */
-    public MetricasVendasDTO calcularMetricas(LocalDateTime inicio, LocalDateTime fim) {
-        Long quantidade = vendaRepository.contarVendasFinalizadas(inicio, fim);
-        BigDecimal faturamento = vendaRepository.somarFaturamentoFinalizado(inicio, fim);
-
-        BigDecimal ticketMedio = BigDecimal.ZERO;
-        if (quantidade != null && quantidade > 0 && faturamento != null) {
-            ticketMedio = faturamento.divide(BigDecimal.valueOf(quantidade),
-                    2, BigDecimal.ROUND_HALF_UP);
-        }
-
-        return new MetricasVendasDTO(quantidade, faturamento, ticketMedio, inicio, fim);
-    }
-
-    /**
-     * Calcula as metricas de vendas considerando todas as vendas finalizadas,
-     * sem filtro de período.
-     *
-     * @return DTO imutável contendo quantidade de vendas, faturamento total e
-     *         ticket médio.
-     */
-    public MetricasVendasDTO calcularMetricas() {
-        return calcularMetricas(null, null);
     }
 }
