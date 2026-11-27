@@ -5,6 +5,7 @@ import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.ItemVenda;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.MetricasVendasDTO;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Produto;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.entity.Venda;
+import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.EstoqueInsuficienteException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.BusinessException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.exception.ValidationException;
 import br.fiesp.senai.unisenai.saborexpress.pdv.model.observer.VendaObserver;
@@ -144,7 +145,8 @@ public class VendaService {
 
             Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
             if (estoqueAtual < itemCarrinho.getQuantidade()) {
-                throw new BusinessException(String.format("Estoque insuficiente para '%s': disponível=%d, solicitado=%d.", produto.getNome(), estoqueAtual, itemCarrinho.getQuantidade()));
+                throw new EstoqueInsuficienteException(produto.getNome(), estoqueAtual,
+                        itemCarrinho.getQuantidade());
             }
         }
 
@@ -165,7 +167,8 @@ public class VendaService {
             venda.adicionarItem(itemVenda);
 
             // Aplica baixa de estoque
-            Integer novoEstoque = produto.getEstoque() - itemCarrinho.getQuantidade();
+            Integer estoqueAtual = produto.getEstoque() != null ? produto.getEstoque() : 0;
+            Integer novoEstoque = estoqueAtual - itemCarrinho.getQuantidade();
             produto.setEstoque(novoEstoque);
             produtoService.atualizar(produto);
         }

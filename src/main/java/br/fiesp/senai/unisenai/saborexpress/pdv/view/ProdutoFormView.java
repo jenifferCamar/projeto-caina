@@ -46,6 +46,7 @@ public class ProdutoFormView extends JPanel {
     private final JTextField txtNome;
     private final JFormattedTextField txtPreco;
     private final JFormattedTextField txtQuantidadeEstoque;
+    private final JFormattedTextField txtEstoqueMinimo;
     private final JCheckBox chkAtivo;
 
     private final JButton btnSalvar;
@@ -161,9 +162,26 @@ public class ProdutoFormView extends JPanel {
         gbc.weightx = 1.0;
         painelCampos.add(txtQuantidadeEstoque, gbc);
 
-        // Campo Ativo / Inativo
+        // Campo Estoque Mínimo
         gbc.gridx = 0;
         gbc.gridy = 5;
+        gbc.weightx = 0.0;
+        painelCampos.add(new JLabel("Estoque Mínimo (*):"), gbc);
+        NumberFormatter formatterEstoqueMinimo = new NumberFormatter(formatoInteiro);
+        formatterEstoqueMinimo.setAllowsInvalid(false);
+        formatterEstoqueMinimo.setMinimum(0);
+        txtEstoqueMinimo = new JFormattedTextField(formatterEstoqueMinimo);
+        txtEstoqueMinimo.setPreferredSize(new Dimension(150, 30));
+        txtEstoqueMinimo.setToolTipText("Exemplo: 3 (quantidade mínima para alerta de reposição)");
+        txtEstoqueMinimo.setValue(0);
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.weightx = 1.0;
+        painelCampos.add(txtEstoqueMinimo, gbc);
+
+        // Campo Ativo / Inativo
+        gbc.gridx = 0;
+        gbc.gridy = 6;
         gbc.weightx = 0.0;
         painelCampos.add(new JLabel("Status do Produto:"), gbc);
         chkAtivo = new JCheckBox("Produto Ativo (disponível para vendas no Caixa)");
@@ -211,7 +229,6 @@ public class ProdutoFormView extends JPanel {
         this.chkAtivo.setSelected(true);
         limparCampos();
     }
-
     /**
      * Carrega uma entidade existente para edição no formulário.
      *
@@ -232,6 +249,7 @@ public class ProdutoFormView extends JPanel {
         this.txtNome.setText(produto.getNome() != null ? produto.getNome() : "");
         this.txtPreco.setValue(produto.getPreco() != null ? produto.getPreco() : BigDecimal.ZERO);
         this.txtQuantidadeEstoque.setValue(produto.getQuantidadeEstoque() != null ? produto.getQuantidadeEstoque() : 0);
+        this.txtEstoqueMinimo.setValue(produto.getEstoqueMinimo() != null ? produto.getEstoqueMinimo() : 0);
         this.chkAtivo.setSelected(produto.isAtivo());
     }
 
@@ -244,6 +262,7 @@ public class ProdutoFormView extends JPanel {
         this.txtNome.setText("");
         this.txtPreco.setValue(BigDecimal.ZERO);
         this.txtQuantidadeEstoque.setValue(0);
+        this.txtEstoqueMinimo.setValue(0);
         this.chkAtivo.setSelected(true);
         this.txtCodigoBarras.requestFocusInWindow();
     }
@@ -297,6 +316,22 @@ public class ProdutoFormView extends JPanel {
             return String.valueOf(((Number) value).intValue());
         }
         String texto = txtQuantidadeEstoque.getText();
+        if (texto != null && !texto.trim().isEmpty()) {
+            try {
+                return String.valueOf(FormatUtils.parseInteiro(texto));
+            } catch (Exception ignored) {
+                return texto.trim();
+            }
+        }
+        return "0";
+    }
+
+    public String getEstoqueMinimoTexto() {
+        Object value = txtEstoqueMinimo.getValue();
+        if (value instanceof Number) {
+            return String.valueOf(((Number) value).intValue());
+        }
+        String texto = txtEstoqueMinimo.getText();
         if (texto != null && !texto.trim().isEmpty()) {
             try {
                 return String.valueOf(FormatUtils.parseInteiro(texto));
