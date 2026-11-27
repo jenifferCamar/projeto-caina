@@ -278,6 +278,38 @@ public class ProdutoRepositoryImpl implements ProdutoRepository {
         }
     }
 
+    @Override
+    public List<Produto> findByAtivoTrueAndNomeUnaccentContainingIgnoreCaseOrderByNomeAsc(String termo) {
+        if (termo == null || termo.trim().isEmpty()) {
+            return findByAtivoTrueOrderByNomeAsc();
+        }
+        EntityManager em = emf.createEntityManager();
+        try {
+            String termoNormalizado = normalizarTexto(termo.trim());
+            String jpql = "SELECT p FROM Produto p WHERE p.ativo = true " +
+                    "AND UPPER(FUNCTION('unaccent', p.nome)) LIKE :termo " +
+                    "ORDER BY p.nome ASC";
+            TypedQuery<Produto> query = em.createQuery(jpql, Produto.class);
+            query.setParameter("termo", "%" + termoNormalizado.toUpperCase() + "%");
+            return query.getResultList();
+        } finally {
+            if (em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+    /**
+     * Normaliza um texto removendo acentos e convertendo para maiúsculas.
+     * Usado para busca sem acentos.
+     */
+    private String normalizarTexto(String texto) {
+        if (texto == null) return "";
+        return java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+                .toUpperCase();
+    }
+
     // ==========================================
     // MÉTODOS LEGADOS (Compatibilidade)
     // ==========================================

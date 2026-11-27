@@ -125,4 +125,12 @@ public interface ProdutoRepository {
      * @return Lista de produtos correspondentes.
      */
     List<Produto> findByAtivoTrueAndNomeContainingIgnoreCaseOrderByNomeAsc(String termo);
+
+    /**
+     * Busca produtos ativos cujo nome contém o termo informado (busca parcial, case-insensitive, sem acentos).
+     *
+     * @param termo Termo de busca (ex: "agua" encontra "água").
+     * @return Lista de produtos correspondentes.
+     */
+    List<Produto> findByAtivoTrueAndNomeUnaccentContainingIgnoreCaseOrderByNomeAsc(String termo);
 }

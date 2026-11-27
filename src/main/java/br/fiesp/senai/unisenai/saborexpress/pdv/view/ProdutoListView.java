@@ -145,14 +145,12 @@ public class ProdutoListView extends JPanel {
         txtBusca = new JTextField();
         txtBusca.setMinimumSize(new Dimension(150, 30));
         txtBusca.setPreferredSize(new Dimension(220, 30));
-        txtBusca.setToolTipText("Digite o nome ou código de barras para buscar");
-        btnBuscar = new JButton("Buscar");
+        txtBusca.setToolTipText("Digite o nome ou código de barras para buscar (busca automática ao digitar)");
         btnLimparFiltro = new JButton("Limpar Filtro");
 
         JPanel painelAcoesTabela = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
         painelAcoesTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
         painelAcoesTabela.add(txtBusca);
-        painelAcoesTabela.add(btnBuscar);
         painelAcoesTabela.add(btnLimparFiltro);
         painelAcoesTabela.add(btnRecarregar);
 
